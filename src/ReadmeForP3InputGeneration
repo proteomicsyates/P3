@@ -1,0 +1,58 @@
+To get input for P3:
+This has to be run for each different specie that you have in the data
+
+Write Bait.txt files
+(contains the name of the baits in the dataset)
+
+
+For the input data put all DB-Proteins.txt files in the same directory (inputs)
+
+
+For the control data put all DB-Proteins.txt control files in the same directory (control)
+
+
+Create an output directory
+
+
+For the PeptideCutter file
+Run src/GetUniprotAccessionNumberAndGeneNames.java over a fasta file downloaded from UniProt
+to get UniProt_Mouse_Accession_And_GeneName_SALVA.txt
+
+#######
+## Salva at 8/16/2016
+## This isn't seem to be applicable now, but just in case...who knows... ¯\_(ツ)_/¯
+## Change the loop limit of line 127 of PeptideCutterParser.java so that you process all proteins in UniProt_Mouse_accession_And_GeneName.txt (7762) in the case of rat.
+#######
+
+Run src/PeptideCutterParser.java with input UniProt_Mouse_Accession_And_GeneName_SALVA.txt. It generates the file peptide_cutter.txt
+
+and then
+
+Run src/PeptideCutterNameNormalization.java giving the file peptide_cutter.txt generated before as input.
+It generates PepCutterNameFixed.txt
+That is the input file for P3 when it asks for the peptide cutter file.
+
+
+For the orthogonal data requested by P3:
+
+BioGRID
+In src/bioparser, there is BioParser:
+Run Bioparser.java with as input the BioGrid file of the organism of interest (tab2 format, i.e. BIOGRID-ORGANISM-Mus_musculus-3.4.139.tab2.txt) and select the output folder.
+This outputs two files which serve as input for P3:
+XX_genetic.txt
+XX_physical.txt
+XX being the input file.
+
+STRING
+Use this command to get the second column of the file created before (ACC-Genes), so containing the Gene names only: 
+cut -f2 UniProt_Mouse_Accession_And_GeneName_SALVA.txt > AllGeneNames_Mouse_SALVA.txt
+
+Run StringOntoGetter.java (which is on /src/parser) with two input files in this order:
+(this program will go to String RESTfull webservice to get a table per protein and parse the data)
+1. All gene names of the organism (). (The file created before)
+2. An empty file (EmptyPreyFile.txt) 
+
+String_10090.txt (all of string)
+and
+String_exp_10090.txt (Using only experimental data from String)
+One of these files can be used to run with P3 (the user choose)

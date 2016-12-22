@@ -1,13 +1,7 @@
 /**
- * diego
- * May 24, 2013
+ * diego May 24, 2013
  */
 package edu.scripps.p3.gui;
-
-import edu.scripps.p3.experimentallist.Differential;
-import edu.scripps.p3.experimentallist.Experiment;
-import edu.scripps.p3.experimentallist.Orthogonal;
-import edu.scripps.p3.parsers.inputs.utilities.Configuration;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -23,14 +17,19 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
+import edu.scripps.p3.experimentallist.Differential;
+import edu.scripps.p3.experimentallist.Experiment;
+import edu.scripps.p3.experimentallist.Orthogonal;
+import edu.scripps.p3.parsers.inputs.utilities.Configuration;
+
 /**
  * @author diego
- * 
+ *
  */
 public class P3mainFrame {
 
 	private static Object lock;
-	
+
 	public final static double version = 0.2;
 
 	private MainPanel mp;
@@ -58,7 +57,6 @@ public class P3mainFrame {
 	private String[] experiments;
 
 	private Configuration configuration;
-	
 
 	/**
 	 * @param elist
@@ -78,14 +76,12 @@ public class P3mainFrame {
 	 * @param baits
 	 * @param experiments
 	 * @param configuration
-	 * @param lock 
+	 * @param lock
 	 */
-	public P3mainFrame(List<Experiment> elist, List<Differential> qlist,
-			List<Differential> llist, List<Orthogonal> olist,
-			boolean quantitative, boolean lysate, boolean physical,
-			boolean genetic, boolean bonus, boolean indirect,
-			boolean advanced, File outdir, File logdir, File topodir,
-			String[] baits, String[] experiments, Configuration configuration, Object lock) {
+	public P3mainFrame(List<Experiment> elist, List<Differential> qlist, List<Differential> llist,
+			List<Orthogonal> olist, boolean quantitative, boolean lysate, boolean physical, boolean genetic,
+			boolean bonus, boolean indirect, boolean advanced, File outdir, File logdir, File topodir, String[] baits,
+			String[] experiments, Configuration configuration, Object lock) {
 		this.elist = elist;
 		this.qlist = qlist;
 		this.llist = llist;
@@ -109,7 +105,7 @@ public class P3mainFrame {
 	public void run() {
 		// Create and set up the window.
 		frame = new JFrame("Protein-Protein Predictor  v" + version);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		mp = new MainPanel();
 		frame.add(mp);
@@ -129,7 +125,7 @@ public class P3mainFrame {
 	public boolean isVisible() {
 		return frame.isVisible();
 	}
-	
+
 	/**
 	 * @return the elist
 	 */
@@ -273,6 +269,7 @@ public class P3mainFrame {
 
 			process = new JButton("Run");
 			process.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					getValueFromGuiForP3();
 					dispose();
@@ -282,6 +279,7 @@ public class P3mainFrame {
 
 			reset = new JButton("Reset");
 			reset.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					reset();
 				}
@@ -296,11 +294,11 @@ public class P3mainFrame {
 
 		private void dispose() {
 			synchronized (lock) {
-                frame.dispose();
-                lock.notify();
-            }
+				frame.dispose();
+				lock.notify();
+			}
 		}
-		
+
 		private void getValueFromGuiForP3() {
 
 			baits = op.getBaits();

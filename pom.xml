@@ -98,5 +98,10 @@
   		<artifactId>commons-math3</artifactId>
   		<version>3.6</version>
   	</dependency>
+  	<dependency>
+  		<groupId>edu.scripps.yates</groupId>
+  		<artifactId>utilities</artifactId>
+  		<version>1.2-SNAPSHOT</version>
+  	</dependency>
   </dependencies>
 </project>

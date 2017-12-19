@@ -16,6 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Experiment;
@@ -254,7 +256,12 @@ public class P3mainFrame {
 		CheckPanel cp;
 
 		public MainPanel() {
-
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException
+					| IllegalAccessException e) {
+				e.printStackTrace();
+			}
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 			op = new OptionsPanel();
@@ -338,6 +345,7 @@ public class P3mainFrame {
 			} else {
 				configuration = new Configuration();
 				configuration.defaultState();
+				configuration.setQuantFeatures(quantitative);
 			}
 
 		}

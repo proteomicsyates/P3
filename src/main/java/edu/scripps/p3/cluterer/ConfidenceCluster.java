@@ -1,6 +1,5 @@
 /**
- * diego
- * Jun 14, 2013
+ * diego Jun 14, 2013
  */
 package edu.scripps.p3.cluterer;
 
@@ -13,16 +12,16 @@ import javax.swing.ProgressMonitor;
 import edu.scripps.p3.cluterer.cluster.Kmeans;
 import edu.scripps.p3.experimentallist.Interactome;
 import edu.scripps.p3.experimentallist.network.Network;
-import edu.scripps.p3.io.dataIO;
+import edu.scripps.p3.io.MyFileChooser;
 
 /**
  * @author diego
- * 
+ *
  */
 public class ConfidenceCluster {
 
-	private List<List<Interactome>> interactomes;
-	private File lout;
+	private final List<List<Interactome>> interactomes;
+	private final File lout;
 	private StringBuffer log;
 	private int iterations;
 	private Hashtable<String, Integer> presencelist;
@@ -36,7 +35,7 @@ public class ConfidenceCluster {
 	 */
 	public ConfidenceCluster(List<List<Interactome>> interactomes, File logdir) {
 		this.interactomes = interactomes;
-		this.lout = logdir;
+		lout = logdir;
 	}
 
 	private int getFullSize() {
@@ -44,7 +43,8 @@ public class ConfidenceCluster {
 
 		for (int k = 0; k < interactomes.size(); k++) {
 			for (int i = 0; i < interactomes.get(k).size(); i++) {
-				size += interactomes.get(k).get(i).getNetlist().size();
+				final Interactome interactome = interactomes.get(k).get(i);
+				size += interactome.getProteinsHavingANetwork().size();
 			}
 		}
 
@@ -52,57 +52,55 @@ public class ConfidenceCluster {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void run() {
 
 		log = new StringBuffer();
-		iterations = 5;
+		iterations = 50;
 
 		int fullsize = getFullSize();
 
-		progressMonitor = new ProgressMonitor(null,
-				"Calculating Cluster Scores", "Initializing", 0, fullsize);
+		progressMonitor = new ProgressMonitor(null, "Calculating Cluster  Scores", "Initializing", 0, fullsize);
 		progress = 0;
 		progressMonitor.setProgress(progress);
 
 		for (int k = 0; k < interactomes.size(); k++) {
 			for (int i = 0; i < interactomes.get(k).size(); i++) {
 
-				List<String> names = interactomes.get(k).get(i).getNetlist();
+				final Interactome interactome = interactomes.get(k).get(i);
+				List<String> baits = interactome.getProteinsHavingANetwork();
 
-				for (int j = 0; j < names.size(); j++) {
+				for (int baitIndex = 0; baitIndex < baits.size(); baitIndex++) {
 
-					Network net = interactomes.get(k).get(i)
-							.getNetwork(names.get(j));
-					List<String> plist = net.getInteraction_names();
-					Hashtable<String, List<Double>> pdata = net
-							.getFeaturesValues();
+					Network net = interactome.getNetwork(baits.get(baitIndex));
+					List<String> interactors = net.getInteractorsNames();
+					Hashtable<String, List<Double>> featuresTable = net.getFeaturesValues();
 
-					log.append("Working on " + net.getExpName() + "\n");
-					progressMonitor.setNote("Working on " + net.getExpName());
-					
-					if (plist.size() > 2) {
+					log.append("Working on " + net.getBait() + "\n");
+					progressMonitor.setNote("Working on " + net.getBait());
+
+					if (interactors.size() > 2) {
 						for (int q = 0; q < iterations; q++) {
 
 							if (q == 0) {
 								presencelist = new Hashtable<String, Integer>();
 							}
 
-							Kmeans kmean = new Kmeans(plist, pdata, 2);
-							kmean.setBait(net.getExpName());
+							Kmeans kmean = new Kmeans(interactors, featuresTable, 2);
+							kmean.setBait(net.getBait());
 							kmean.run();
 							List<String> clust = kmean.getClusters();
 							setStatistics(clust);
 
 						}
 
-						createClusters(plist, pdata, net);
+						createClusters(interactors, featuresTable, net);
 					} else {
-						
+
 						presencelist = new Hashtable<String, Integer>();
-						setStatistics(plist);
-						createClusters(plist, null, net);
+						setStatistics(interactors);
+						createClusters(interactors, null, net);
 					}
 
 					progress++;
@@ -115,17 +113,16 @@ public class ConfidenceCluster {
 
 		progressMonitor.close();
 
-		dataIO dIO = new dataIO();
+		MyFileChooser dIO = new MyFileChooser();
 		dIO.writeLog(lout, log, "ClusterLog");
 
 	}
 
-	private void createClusters(List<String> plist,
-			Hashtable<String, List<Double>> pdata, Network net) {
+	private void createClusters(List<String> plist, Hashtable<String, List<Double>> pdata, Network net) {
 
 		double distance;
 
-		String bait = net.getExpName();
+		String bait = net.getBait();
 
 		for (String pname : plist) {
 
@@ -134,10 +131,14 @@ public class ConfidenceCluster {
 			if (!pname.equals(bait)) {
 				if (presencelist.containsKey(pname)) {
 					int presence = presencelist.get(pname);
-					if (presence == iterations) {
-						distance = getDifference(pdata.get(bait),
-								pdata.get(pname));
-												
+					// Salva change Jan 10th 2017: get the distance not only
+					// when the protein is clustered with the bait 5 out 5
+					// clusters (when iterations was 5, because I changed it to
+					// 50), but at least half of them?
+					// if (presence == iterations) {
+					if (presence >= Double.valueOf(iterations / 2.0)) {
+						distance = getDifference(pdata.get(bait), pdata.get(pname));
+
 						distance = 1 - distance;
 						if (distance < 0) {
 							distance = 0;
@@ -145,11 +146,10 @@ public class ConfidenceCluster {
 
 					}
 				}
-				log.append("Confidence between:\t" + bait + "\t" + pname + "\t"
-						+ distance + "\n");
-				net.getInteraction(pname).setCluster_score(distance);
+				log.append("Confidence between:\t" + bait + "\t" + pname + "\t" + distance + "\n");
+				net.getInteractionByInteractorName(pname).setCluster_score(distance);
 			} else {
-				net.getInteraction(pname).setCluster_score(1.0);
+				net.getInteractionByInteractorName(pname).setCluster_score(1.0);
 			}
 
 		}

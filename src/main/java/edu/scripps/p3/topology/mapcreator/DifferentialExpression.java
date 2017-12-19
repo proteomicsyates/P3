@@ -7,6 +7,7 @@ package edu.scripps.p3.topology.mapcreator;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.experimentallist.Interactome;
@@ -28,8 +29,8 @@ public class DifferentialExpression {
 	 * @param elist
 	 * @param qlist
 	 */
-	public DifferentialExpression(List<List<Interactome>> interactomes,
-			String[] baits, List<Experiment> elist, List<Differential> qlist) {
+	public DifferentialExpression(List<List<Interactome>> interactomes, String[] baits, List<Experiment> elist,
+			List<Differential> qlist) {
 		this.interactomes = interactomes;
 		this.baits = baits;
 		this.elist = elist;
@@ -45,51 +46,47 @@ public class DifferentialExpression {
 			String bait = baits[i].split("-")[0];
 
 			Differential diff = new Differential(bait);
-			
+
 			qlist.add(diff);
-			
+
 			for (int j = 0; j < interactomes.size(); j++) {
 				for (int k = 0; k < interactomes.get(j).size(); k++) {
-					if (interactomes.get(j).get(k).getBait_name().equals(bait)) {
+					final Interactome interactome = interactomes.get(j).get(k);
+					if (interactome.getBait_name().equals(bait)) {
 
-						List<String> netlist = interactomes.get(j).get(k)
-								.getNetlist();
+						List<String> netlist = interactome.getProteinsHavingANetwork();
 
-						String exp = interactomes.get(j).get(k).getExp_name();
+						String exp = interactome.getConditionName();
 
 						for (int z = 0; z < elist.size(); z++) {
-							for (int q = 0; q < elist.get(z)
-									.getNumberofConditions(); q++) {
-								if (elist.get(z).getCondition(q).getName()
-										.equals(exp)) {
+							final Experiment experiment = elist.get(z);
+							for (int q = 0; q < experiment.getNumberofConditions(); q++) {
+								final Condition condition = experiment.getCondition(q);
+								if (condition.getName().equals(exp)) {
 
 									for (String element : netlist) {
-										
+
 										double spcount;
-										
-										if (elist.get(z).getCondition(q).proteinInTable(element)) {
-											 spcount = elist.get(z).getCondition(q).getProtein(element).getScount();
+
+										if (condition.proteinInTable(element)) {
+											spcount = condition.getProtein(element).getScount();
 										} else {
 											spcount = 0;
 										}
-										
+
 										if (diff.getData().containsKey(element)) {
-											
+
 											double value = diff.getDiffValue(element);
-											
-											if (spcount!=0) {
+
+											if (spcount != 0) {
 												value = value / spcount;
 											} else {
 												value = 10;
 											}
-																						
-											
+
 										} else {
 											diff.addValue(element, spcount);
 										}
-										
-										
-										
 
 									}
 

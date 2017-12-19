@@ -16,15 +16,15 @@ import javax.swing.JFileChooser;
  * @author diego
  * 
  */
-public class dataIO {
+public class MyFileChooser {
 
 	private File curdir=null;
 	
-	public dataIO(){ 
+	public MyFileChooser(){ 
 		
 	}
 	
-	public dataIO(File curdir) {
+	public MyFileChooser(File curdir) {
 		this.curdir = curdir;
 	}
 	

@@ -107,7 +107,7 @@ public class FilterMockExperiment {
 			split2 = s2.split("\t");
 		}
 		// The reader is now at the header line
-		Map<Integer, Integer> indexByReplicate2 = PreFilterUtils.getIndexesByReplicate(split2);
+		Map<Integer, Integer> indexByReplicate2 = PreFilterUtils.getRatioIndexesByReplicate(split2);
 		Map<String, Integer> indexesByHeader2 = PreFilterUtils.getIndexesByHeaders(split2);
 		s2 = in2.readLine(); // The reader is now at the first line of data
 		split2 = s2.split("\t");
@@ -153,7 +153,7 @@ public class FilterMockExperiment {
 
 			split = s.split("\t");
 		}
-		Map<Integer, Integer> indexByReplicate1 = PreFilterUtils.getIndexesByReplicate(split);
+		Map<Integer, Integer> indexByReplicate1 = PreFilterUtils.getRatioIndexesByReplicate(split);
 
 		Map<String, Integer> indexesByHeader1 = PreFilterUtils.getIndexesByHeaders(split);
 		// The reader is now at the header line

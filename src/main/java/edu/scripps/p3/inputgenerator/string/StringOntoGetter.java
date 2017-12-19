@@ -36,6 +36,7 @@ public class StringOntoGetter {
 	public static final String MOUSE = "10090";
 	public static final String HUMAN = "9606";
 	public static final String RAT = "10116";
+	public static final String YEAST = "4932";
 
 	private void setSpecies(String specie) {
 		this.specie = specie;
@@ -185,7 +186,7 @@ public class StringOntoGetter {
 	 */
 	public static void main(String[] args) {
 		StringOntoGetter sog = new StringOntoGetter();
-		sog.setSpecies(StringOntoGetter.RAT);
+		sog.setSpecies(StringOntoGetter.YEAST);
 		sog.run();
 
 	}

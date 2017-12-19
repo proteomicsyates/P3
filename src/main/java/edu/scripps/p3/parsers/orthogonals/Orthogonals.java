@@ -259,19 +259,19 @@ public class Orthogonals {
 
 		public void getUserSelections() {
 			
-			int index;
-			int index2;
+			int typeSelectedIndex;
+			int confidenceSelectedIndex;
 			String text;
 			double value;
 			
 			for (int i = 0; i < coeffs.size(); i++) {
 				
-				index = typelist.get(i).getSelectedIndex();
-				assignments.set(i, index);
+				typeSelectedIndex = typelist.get(i).getSelectedIndex();
+				assignments.set(i, typeSelectedIndex);
 
-				index2 = conflist.get(i).getSelectedIndex();
+				confidenceSelectedIndex = conflist.get(i).getSelectedIndex();
 				
-				if (index2 == 3) {
+				if (confidenceSelectedIndex == 3) {
 					
 					text = coeffs.get(i).getText();
 
@@ -285,7 +285,7 @@ public class Orthogonals {
 										
 				} else {
 
-					switch (index2) {
+					switch (confidenceSelectedIndex) {
 					case 0:
 						coefficients.set(i, 0.1); break;
 					case 1: 

@@ -34,8 +34,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.5.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -83,7 +83,7 @@
   		<artifactId>jfreechart</artifactId>
   		<version>1.0.19</version>
   	</dependency>
-  	<dependency>
+  	<dependency> 
   		<groupId>org.tc33.jheatchart</groupId>
   		<artifactId>jheatchart</artifactId>
   		<version>0.6</version>
@@ -92,6 +92,12 @@
   		<groupId>net.sf.jgap</groupId>
   		<artifactId>jgap</artifactId>
   		<version>3.4.4</version>
+  		<exclusions>
+  			<exclusion>
+  				<groupId>net.sf.trove4j</groupId>
+  				<artifactId>trove4j</artifactId>
+  			</exclusion>
+  		</exclusions>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.commons</groupId>
@@ -101,7 +107,7 @@
   	<dependency>
   		<groupId>edu.scripps.yates</groupId>
   		<artifactId>utilities</artifactId>
-  		<version>1.2-SNAPSHOT</version>
+  		<version>1.5-SNAPSHOT</version>
   	</dependency>
   </dependencies>
 </project>

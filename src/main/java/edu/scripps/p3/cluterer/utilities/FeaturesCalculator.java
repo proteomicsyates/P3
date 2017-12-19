@@ -4,13 +4,13 @@
  */
 package edu.scripps.p3.cluterer.utilities;
 
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.ProgressMonitor;
 
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.experimentallist.Interactome;
@@ -26,14 +26,11 @@ public class FeaturesCalculator {
 	private List<List<Interactome>> interactomes;
 	private boolean quantitative;
 	private List<Differential> qlist;
-	
-	private Hashtable<String, List<Double>> element;
-	private List<String> fplist;
 
 	private Protein currentBait;
-	
+
 	private ProgressMonitor progressMonitor;
-	private static int progress=0;
+	private static int progress = 0;
 
 	/**
 	 * @param elist
@@ -42,8 +39,7 @@ public class FeaturesCalculator {
 	 * @param qlist
 	 * @param logdir
 	 */
-	public FeaturesCalculator(List<Experiment> elist,
-			List<List<Interactome>> interactomes, boolean quantitative,
+	public FeaturesCalculator(List<Experiment> elist, List<List<Interactome>> interactomes, boolean quantitative,
 			List<Differential> qlist) {
 
 		this.elist = elist;
@@ -52,7 +48,7 @@ public class FeaturesCalculator {
 		if (quantitative) {
 			this.qlist = qlist;
 		}
-		
+
 	}
 
 	/**
@@ -62,105 +58,119 @@ public class FeaturesCalculator {
 		return interactomes;
 	}
 
-	
 	private int getFullSize() {
 		int size = 0;
-	
+
 		for (int k = 0; k < interactomes.size(); k++) {
 			for (int i = 0; i < interactomes.get(k).size(); i++) {
-				size += interactomes.get(k).get(i).getNetlist().size();
+				final Interactome interactome = interactomes.get(k).get(i);
+				size += interactome.getProteinsHavingANetwork().size();
 			}
 		}
-				
+
 		return size;
 	}
-	
+
 	/**
 	 * 
 	 */
 	public void run() {
 
 		int fullsize = getFullSize();
-		
-		progressMonitor = new ProgressMonitor(null,"Calculating Features","Initializing", 0, fullsize);
+
+		progressMonitor = new ProgressMonitor(null, "Calculating Features", "Initializing", 0, fullsize);
 		progress = 0;
 		progressMonitor.setProgress(progress);
-		
-		for (int k = 0; k < interactomes.size(); k++) {
-			for (int i = 0; i < interactomes.get(k).size(); i++) {
-				List<String> pnames = interactomes.get(k).get(i).getNetlist();
-				
-				
-				
-				for (int j = 0; j < pnames.size(); j++) {
-					
-	//				if (pnames.get(j).equals(interactomes.get(k).get(i).getBait_name())) {
-						
-						element = new Hashtable<String, List<Double>>();
-						fplist = new ArrayList<String>();
 
-						Features feat = new Features(pnames.get(j) + "_"
-								+ interactomes.get(k).get(i).getExp_name(),
-								element, fplist);
+		for (int experimentIndex = 0; experimentIndex < interactomes.size(); experimentIndex++) {
+			final List<Interactome> experimentInteractomes = interactomes.get(experimentIndex);
+			for (int conditionIndex = 0; conditionIndex < experimentInteractomes.size(); conditionIndex++) {
+				final Interactome experimentConditionInteractome = experimentInteractomes.get(conditionIndex);
+				List<String> baits = experimentConditionInteractome.getProteinsHavingANetwork();
 
-						List<Protein> plist = getProteinList(i, j, k);
+				for (int baitIndex = 0; baitIndex < baits.size(); baitIndex++) {
 
-						calculatefeat(plist,k);
-						
-						interactomes.get(k).get(i).getNetwork(pnames.get(j)).setFeatures(feat);
+					// if
+					// (pnames.get(j).equals(interactomes.get(k).get(i).getBait_name()))
+					// {
 
-						
-	//				} else {
-	//					interactomes.get(k).get(i).getSystem().remove(pnames.get(j));
-	//					pnames.remove(j);
-	//					j--;
-	//				}
-					
-/*					element = new Hashtable<String, List<Double>>();
-					fplist = new ArrayList<String>();
+					final String bait = baits.get(baitIndex);
+					final String baitConditionKey = bait + "_" + experimentConditionInteractome.getConditionName();
+					Features feat = new Features(baitConditionKey);
 
-					Features feat = new Features(pnames.get(j) + "_"
-							+ interactomes.get(k).get(i).getExp_name(),
-							element, fplist);
+					List<Protein> plist = getProteinList(conditionIndex, baitIndex, experimentIndex);
 
-					List<Protein> plist = getProteinList(i, j, k);
+					Hashtable<String, List<Double>> featuresPerPrey = new Hashtable<String, List<Double>>();
+					List<String> preysWithFeatures = new ArrayList<String>();
+					calculatefeat(plist, experimentIndex, featuresPerPrey, preysWithFeatures);
+					feat.setFeaturesPerPreyData(preysWithFeatures, featuresPerPrey);
 
-					calculatefeat(plist,k);
-					
-					interactomes.get(k).get(i).getNetwork(pnames.get(j)).setFeatures(feat);
-*/					
+					experimentConditionInteractome.getNetwork(bait).setFeatures(feat);
+
+					// } else {
+					// interactomes.get(k).get(i).getSystem().remove(pnames.get(j));
+					// pnames.remove(j);
+					// j--;
+					// }
+
+					/*
+					 * element = new Hashtable<String, List<Double>>(); fplist =
+					 * new ArrayList<String>();
+					 * 
+					 * Features feat = new Features(pnames.get(j) + "_" +
+					 * interactomes.get(k).get(i).getExp_name(), element,
+					 * fplist);
+					 * 
+					 * List<Protein> plist = getProteinList(i, j, k);
+					 * 
+					 * calculatefeat(plist,k);
+					 * 
+					 * interactomes.get(k).get(i).getNetwork(pnames.get(j)).
+					 * setFeatures(feat);
+					 */
 					progress++;
 					progressMonitor.setProgress(progress);
 
 				}
 			}
 		}
-		
+
 		progressMonitor.close();
 
 	}
 
+	/**
+	 * Gets all the proteins that interact with the bait that are present in the
+	 * experiment+condition.<br>
+	 * It also sets the currentBait ( {@link Protein} ) object
+	 * 
+	 * @param cond_id
+	 * @param prot_id
+	 * @param bait_id
+	 * @return
+	 */
 	private List<Protein> getProteinList(int cond_id, int prot_id, int bait_id) {
 
 		List<Protein> plist = new ArrayList<Protein>();
 
-		String bait = interactomes.get(bait_id).get(cond_id).getNetlist().get(prot_id);
+		final Interactome interactome = interactomes.get(bait_id).get(cond_id);
+		String bait = interactome.getProteinsHavingANetwork().get(prot_id);
 
-		List<String> pnames = interactomes.get(bait_id).get(cond_id).getNetwork(bait)
-				.getInteraction_names();
+		List<String> pnames = interactome.getNetwork(bait).getInteractorsNames();
 
-		for (String pname : elist.get(bait_id).getCondition(cond_id).getPnames()) {
+		final Condition condition = elist.get(bait_id).getCondition(cond_id);
+		for (String pname : condition.getPnames()) {
 
 			if (pnames.contains(pname)) {
-				plist.add(elist.get(bait_id).getCondition(cond_id).getProtein(pname));
+				plist.add(condition.getProtein(pname));
 			}
 
 			if (pname.equals(bait)) {
-				currentBait = elist.get(bait_id).getCondition(cond_id)
-						.getProtein(pname);
-				
-				progressMonitor.setNote("Calculating Features for " + pname + " in " + elist.get(bait_id).getName() + " " + elist.get(bait_id).getCondition(cond_id).getName());
-				
+				currentBait = condition.getProtein(pname);
+
+				progressMonitor.setNote("Calculating Features for " + pname + " in " + elist.get(bait_id).getName()
+						+ " " + condition.getName());
+
 			}
 
 		}
@@ -168,10 +178,11 @@ public class FeaturesCalculator {
 		return plist;
 	}
 
-	private void calculatefeat(List<Protein> plist, int bait_id) {
+	private void calculatefeat(List<Protein> preyList, int bait_id, Hashtable<String, List<Double>> featuresPerPrey,
+			List<String> preysWithFeatures) {
 
-		Protein Bait = currentBait;
-		
+		Protein bait = currentBait;
+
 		double p_pepcount;
 		double p_spcount;
 		double p_mw;
@@ -179,15 +190,15 @@ public class FeaturesCalculator {
 		double p_quant;
 		double p_coverage;
 
-		double b_pepcount = Bait.getPcount();
-		double b_spcount = Bait.getScount();
-		double b_mw = Bait.getMw();
-		double b_lenght = Bait.getLength();
-		double b_coverage = Bait.getCoverage();
+		double b_pepcount = bait.getPcount();
+		double b_spcount = bait.getScount();
+		double b_mw = bait.getMw();
+		double b_lenght = bait.getLength();
+		double b_coverage = bait.getCoverage();
 		double b_quant;
 
 		if (quantitative) {
-			b_quant = qlist.get(bait_id).getDiffValue(Bait.getName());
+			b_quant = qlist.get(bait_id).getDiffValue(bait.getName());
 			if (b_quant == -1) {
 				b_quant = 1;
 			}
@@ -206,18 +217,19 @@ public class FeaturesCalculator {
 
 		double quant_ratio;
 		double qdensity_ratio;
-		
-		for (int j = 0; j < plist.size(); j++) {
 
-			String name = plist.get(j).getName();
-			p_pepcount = plist.get(j).getPcount();
-			p_spcount = plist.get(j).getScount();
-			p_mw = plist.get(j).getMw();
-			p_lenght = plist.get(j).getLength();
-			p_coverage = plist.get(j).getCoverage();
-			
+		for (int j = 0; j < preyList.size(); j++) {
+
+			final Protein prey = preyList.get(j);
+			String preyName = prey.getName();
+			p_pepcount = prey.getPcount();
+			p_spcount = prey.getScount();
+			p_mw = prey.getMw();
+			p_lenght = prey.getLength();
+			p_coverage = prey.getCoverage();
+
 			if (quantitative) {
-				p_quant = qlist.get(bait_id).getDiffValue(name);
+				p_quant = qlist.get(bait_id).getDiffValue(preyName);
 				if (p_quant == -1) {
 					p_quant = 1;
 				}
@@ -302,29 +314,29 @@ public class FeaturesCalculator {
 
 			}
 
-			if (element.containsKey(name)) {
+			if (featuresPerPrey.containsKey(preyName)) {
 
-				List<Double> oldfeat = element.get(name);
+				List<Double> oldfeat = featuresPerPrey.get(preyName);
 				for (int k = 0; k < feats.size(); k++) {
 					oldfeat.add(feats.get(k));
 				}
-				element.put(name, oldfeat);
+				featuresPerPrey.put(preyName, oldfeat);
 
 			} else {
-				element.put(name, feats);
-				fplist.add(name);
+				featuresPerPrey.put(preyName, feats);
+				preysWithFeatures.add(preyName);
 			}
 
 		}
 
 	}
-	
+
 	private double getLogLogistic(double s) {
-		
+
 		double val = Math.log(s);
-		val = 1.0/(1.0 + Math.exp(-val));
+		val = 1.0 / (1.0 + Math.exp(-val));
 		return val;
-		
+
 	}
 
 }

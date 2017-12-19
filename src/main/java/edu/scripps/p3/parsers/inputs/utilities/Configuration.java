@@ -1,6 +1,5 @@
 /**
- * diego
- * Jun 7, 2013
+ * diego Jun 7, 2013
  */
 package edu.scripps.p3.parsers.inputs.utilities;
 
@@ -23,7 +22,8 @@ public class Configuration {
 	private double confidenceOrtoT;
 	private boolean rapidCorrelation;
 	private boolean quantFeatures;
-	
+	private double spcCorrelationT;
+
 	public void defaultState() {
 		setValid(true);
 		setCorrelationT(0.01);
@@ -38,8 +38,12 @@ public class Configuration {
 		setConfidenceOrtoT(0.1);
 		setRapidCorrelation(true);
 		setQuantFeatures(false);
+		// low complexity
+		setSpcCorrelationT(0.25);
+		// high complexity
+		// setSpcCorrelationT(0.5);
 	}
-	
+
 	/**
 	 * @return the confidenceT
 	 */
@@ -48,7 +52,8 @@ public class Configuration {
 	}
 
 	/**
-	 * @param confidenceT the confidenceT to set
+	 * @param confidenceT
+	 *            the confidenceT to set
 	 */
 	public void setConfidenceT(double confidenceT) {
 		this.confidenceT = confidenceT;
@@ -62,7 +67,8 @@ public class Configuration {
 	}
 
 	/**
-	 * @param confidenceOrtoT the confidenceOrtoT to set
+	 * @param confidenceOrtoT
+	 *            the confidenceOrtoT to set
 	 */
 	public void setConfidenceOrtoT(double confidenceOrtoT) {
 		this.confidenceOrtoT = confidenceOrtoT;
@@ -76,7 +82,8 @@ public class Configuration {
 	}
 
 	/**
-	 * @param rapidCorrelation the rapidCorrelation to set
+	 * @param rapidCorrelation
+	 *            the rapidCorrelation to set
 	 */
 	public void setRapidCorrelation(boolean rapidCorrelation) {
 		this.rapidCorrelation = rapidCorrelation;
@@ -90,7 +97,8 @@ public class Configuration {
 	}
 
 	/**
-	 * @param quantFeatures the quantFeatures to set
+	 * @param quantFeatures
+	 *            the quantFeatures to set
 	 */
 	public void setQuantFeatures(boolean quantFeatures) {
 		this.quantFeatures = quantFeatures;
@@ -102,109 +110,145 @@ public class Configuration {
 	public boolean isValid() {
 		return valid;
 	}
+
 	/**
-	 * @param valid the valid to set
+	 * @param valid
+	 *            the valid to set
 	 */
 	public void setValid(boolean valid) {
 		this.valid = valid;
 	}
+
 	/**
 	 * @return the correlationT
 	 */
 	public double getCorrelationT() {
 		return correlationT;
 	}
+
 	/**
-	 * @param correlationT the correlationT to set
+	 * @param correlationT
+	 *            the correlationT to set
 	 */
 	public void setCorrelationT(double correlationT) {
 		this.correlationT = correlationT;
 	}
+
 	/**
 	 * @return the quantitativeLevel
 	 */
 	public double getQuantitativeLevel() {
 		return quantitativeLevel;
 	}
+
 	/**
-	 * @param quantitativeLevel the quantitativeLevel to set
+	 * @param quantitativeLevel
+	 *            the quantitativeLevel to set
 	 */
 	public void setQuantitativeLevel(double quantitativeLevel) {
 		this.quantitativeLevel = quantitativeLevel;
 	}
+
 	/**
 	 * @return the correlationW
 	 */
 	public double getCorrelationW() {
 		return correlationW;
 	}
+
 	/**
-	 * @param correlationW the correlationW to set
+	 * @param correlationW
+	 *            the correlationW to set
 	 */
 	public void setCorrelationW(double correlationW) {
 		this.correlationW = correlationW;
 	}
+
 	/**
 	 * @return the clusterW
 	 */
 	public double getClusterW() {
 		return clusterW;
 	}
+
 	/**
-	 * @param clusterW the clusterW to set
+	 * @param clusterW
+	 *            the clusterW to set
 	 */
 	public void setClusterW(double clusterW) {
 		this.clusterW = clusterW;
 	}
+
 	/**
 	 * @return the quantitativeW
 	 */
 	public double getQuantitativeW() {
 		return quantitativeW;
 	}
+
 	/**
-	 * @param quantitativeW the quantitativeW to set
+	 * @param quantitativeW
+	 *            the quantitativeW to set
 	 */
 	public void setQuantitativeW(double quantitativeW) {
 		this.quantitativeW = quantitativeW;
 	}
+
 	/**
 	 * @return the internalW
 	 */
 	public double getInternalW() {
 		return internalW;
 	}
+
 	/**
-	 * @param internalW the internalW to set
+	 * @param internalW
+	 *            the internalW to set
 	 */
 	public void setInternalW(double internalW) {
 		this.internalW = internalW;
 	}
+
 	/**
 	 * @return the physicalW
 	 */
 	public double getPhysicalW() {
 		return physicalW;
 	}
+
 	/**
-	 * @param physicalW the physicalW to set
+	 * @param physicalW
+	 *            the physicalW to set
 	 */
 	public void setPhysicalW(double physicalW) {
 		this.physicalW = physicalW;
 	}
+
 	/**
 	 * @return the geneticW
 	 */
 	public double getGeneticW() {
 		return geneticW;
 	}
+
 	/**
-	 * @param geneticW the geneticW to set
+	 * @param geneticW
+	 *            the geneticW to set
 	 */
 	public void setGeneticW(double geneticW) {
 		this.geneticW = geneticW;
 	}
-	
-	
-	
+
+	public double getSpcCorrelationT() {
+		return spcCorrelationT;
+	}
+
+	/**
+	 * @param spcCorrelationT
+	 *            the spcCorrelationT to set
+	 */
+	public void setSpcCorrelationT(double spcCorrelationT) {
+		this.spcCorrelationT = spcCorrelationT;
+	}
+
 }

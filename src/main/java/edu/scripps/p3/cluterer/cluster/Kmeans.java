@@ -23,7 +23,8 @@ public class Kmeans {
 	
 	public void run() {
 		
-		centers = new double[clusters][data.get(plist.get(0)).size()];
+		final List<Double> list = data.get(plist.get(0));
+		centers = new double[clusters][list.size()];
 		
 		selectCenters();
 		
@@ -78,10 +79,11 @@ public class Kmeans {
 		
 		for (int i=0; i < plist.size(); i++) {
 			
-			if (!plist.get(i).equals(bait)) {
-				if (data.containsKey(plist.get(i))) {
+			final String prey = plist.get(i);
+			if (!prey.equals(bait)) {
+				if (data.containsKey(prey)) {
 					
-					List<Double> feats = data.get(plist.get(i));
+					List<Double> feats = data.get(prey);
 					distance = new double[clusters];
 					
 					for (int j=0; j < clusters; j++) {
@@ -91,9 +93,9 @@ public class Kmeans {
 					
 					int assigned = getMinDistance(distance);
 					
-					cluslist.get(assigned).add(plist.get(i));
+					cluslist.get(assigned).add(prey);
 					} else {
-						System.out.println("Features not available for " + plist.get(i));
+						System.out.println("Features not available for " + prey);
 					}
 			}
 					
@@ -134,12 +136,13 @@ public class Kmeans {
 		
 		for (int i=0; i < clusters; i++) {
 			int index = r.nextInt(plist.size());
-			if ((index!=oldindex) && (!plist.get(index).equals(bait))) {
+			final String prey = plist.get(index);
+			if ((index!=oldindex) && (!prey.equals(bait))) {
 				
 				oldindex = index; //TODO its ok for 2 clusters, it need to become more elaborate for more...
 				
-				for (int j=0; j < data.get(plist.get(index)).size(); j++) {
-					centers[i][j] = data.get(plist.get(index)).get(j);
+				for (int j=0; j < data.get(prey).size(); j++) {
+					centers[i][j] = data.get(prey).get(j);
 				}
 								
 			} else {

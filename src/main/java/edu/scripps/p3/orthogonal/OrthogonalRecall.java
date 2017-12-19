@@ -1,6 +1,5 @@
 /**
- * diego
- * Nov 19, 2013
+ * diego Nov 19, 2013
  */
 package edu.scripps.p3.orthogonal;
 
@@ -11,15 +10,15 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
-
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.experimentallist.Interactome;
 import edu.scripps.p3.experimentallist.Orthogonal;
-import edu.scripps.p3.io.dataIO;
+import edu.scripps.p3.io.MyFileChooser;
 
 /**
  * @author diego
- * 
+ *
  */
 public class OrthogonalRecall {
 
@@ -114,7 +113,7 @@ public class OrthogonalRecall {
 
 		}
 
-		dataIO dIO = new dataIO();
+		MyFileChooser dIO = new MyFileChooser();
 		dIO.writeLog(logdir, log, "RecallLog");
 
 	}
@@ -170,8 +169,7 @@ public class OrthogonalRecall {
 
 					}
 
-					String st_name = bname + "_"
-							+ exp.getCondition(i).getName();
+					String st_name = bname + "_" + exp.getCondition(i).getName();
 
 					ScoreTable st = new ScoreTable(st_name);
 					st.addPhase(phase);
@@ -203,11 +201,9 @@ public class OrthogonalRecall {
 		String prey;
 
 		for (Orthogonal orto : olist) {
+			if (orto.getType().equals(Orthogonal.PHYSICAL) && orto.getCoefficient() > 0.4) {
+				List<String> elements = orto.getElements();
 
-			List<String> elements = orto.getElements();
-
-			if (orto.getType().equals(Orthogonal.PHYSICAL)
-					&& orto.getCoefficient() > 0.4) {
 				for (String element : elements) {
 
 					bait = element.split("_")[0];
@@ -250,7 +246,7 @@ public class OrthogonalRecall {
 	public void calculate(List<List<Interactome>> interactomes) {
 
 		String bait;
-		String exp;
+		String condition;
 		int overlap;
 
 		List<String> bnames;
@@ -262,8 +258,9 @@ public class OrthogonalRecall {
 
 			for (int j = 0; j < interactomes.get(i).size(); j++) {
 
-				bait = interactomes.get(i).get(j).getBait_name();
-				exp = interactomes.get(i).get(j).getExp_name();
+				final Interactome interactome = interactomes.get(i).get(j);
+				bait = interactome.getBait_name();
+				condition = interactome.getConditionName();
 
 				bnames = new ArrayList<String>();
 
@@ -291,8 +288,7 @@ public class OrthogonalRecall {
 						pnames = pooled;
 						pool = false;
 					} else {
-						pnames = interactomes.get(i).get(j).getNetwork(bname)
-								.getInteraction_names();
+						pnames = interactome.getNetwork(bname).getInteractorsNames();
 					}
 
 					if (pool) {
@@ -303,11 +299,11 @@ public class OrthogonalRecall {
 						}
 					}
 
-					calculate(bname, exp, pnames);
+					calculate(bname, condition, pnames);
 
 				}
 
-				findMis(bnames, exp);
+				findMis(bnames, condition);
 
 			}
 
@@ -316,26 +312,35 @@ public class OrthogonalRecall {
 	}
 
 	/**
+	 * For each individual bait, it removes all the lost interactors that are
+	 * present as interactor of another bait, adding them to the set of "known
+	 * and misscalled" interactors.
+	 * 
 	 * @param bnames
+	 * @param condition
 	 */
-	private void findMis(List<String> bnames, String exp) {
+	private void findMis(List<String> bnames, String condition) {
 
-		for (String bname : bnames) {
+		for (String bname1 : bnames) {
 
-			ScoreTable st = scoretables.get(bname + "_" + exp);
+			final String bait1ConditionKey = bname1 + "_" + condition;
+			ScoreTable scoreTable1 = scoretables.get(bait1ConditionKey);
 
-			List<String> lost = st.getLosts(phase);
+			List<String> lost = scoreTable1.getLosts(phase);
 
-			for (String bname1 : bnames) {
+			for (String bname2 : bnames) {
 
 				for (int i = 0; i < lost.size(); i++) {
 
-					if (scoretables.get(bname1 + "_" + exp).contains(
-							lost.get(i))) {
+					final String bait2ConditionKey = bname2 + "_" + condition;
+					final String lostInteractor = lost.get(i);
+					final ScoreTable scoreTable2 = scoretables.get(bait2ConditionKey);
+					if (scoreTable2.contains(lostInteractor)) {
 
-						st.addKnownMiscalled(phase);
-						lost.remove(i);
-						i--;
+						scoreTable1.addKnownMiscalled(phase);
+						// lost.remove(i);
+						// i--;
+						lost.remove(lostInteractor);
 
 					}
 
@@ -347,56 +352,55 @@ public class OrthogonalRecall {
 
 	}
 
-	
 	private String stat(String bname, String exp, List<String> pnames) {
-		
+
 		StringBuilder blog = new StringBuilder();
 		String name = bname + "_" + exp;
 		ScoreTable st = scoretables.get(name);
 		st.addPhase(phase);
-		
+
 		blog.append("B\t");
 		blog.append(name);
 		blog.append("\nK\t");
-		
+
 		StringBuilder known = new StringBuilder();
 		StringBuilder novel = new StringBuilder();
-				
+
 		for (String pname : pnames) {
 			if (st.ProtInRef(pname)) {
-				
+
 				known.append(pname);
 				known.append("\t");
-				
+
 			} else {
-				
+
 				novel.append(pname);
 				novel.append("\t");
-				
+
 			}
 
 		}
-		
+
 		known.append("\n");
 		novel.append("\n");
-		
+
 		blog.append(known.toString());
 		blog.append("U\t");
 		blog.append(novel.toString());
-		
+
 		return blog.toString();
-		
-		
+
 	}
-	
+
 	/**
 	 * @param bname
 	 * @param exp
-	 * @param pnames
+	 * @param p3Interactors
 	 */
-	private void calculate(String bname, String exp, List<String> pnames) {
+	private void calculate(String bname, String exp, List<String> p3Interactors) {
 
 		String name = bname + "_" + exp;
+		// score table of known interactors of bait name in experiment exp
 		ScoreTable st = scoretables.get(name);
 		st.addPhase(phase);
 
@@ -406,18 +410,18 @@ public class OrthogonalRecall {
 
 		// add lost
 
-		for (String pname : pnames) {
-			if (st.ProtInRef(pname)) {
+		for (String p3Interactor : p3Interactors) {
+			if (st.ProtInRef(p3Interactor)) {
 				st.addKnownAndCalled(phase);
 			} else {
 				st.addUnknown(phase);
-				st.addUnkProt(pname);
+				st.addUnkProt(p3Interactor);
 			}
 
 		}
 
 		for (String pname : st.getRef()) {
-			if (!pnames.contains(pname)) {
+			if (!p3Interactors.contains(pname)) {
 				st.addLost(pname);
 			}
 		}
@@ -478,21 +482,45 @@ public class OrthogonalRecall {
 			return table.get(phase)[3];
 		}
 
+		/**
+		 * Increases the number of proteins that are known and were called as an
+		 * interactor in a certain phase of the algorithm
+		 * 
+		 * @param phase
+		 */
 		public void addKnownAndCalled(String phase) {
 
 			table.get(phase)[0]++;
 
 		}
 
-		public void addUnkProt(String name) {
-			unknowns.add(name);
+		/**
+		 * Adds the protein name to the list of proteins that were unknown to be
+		 * an interactor
+		 * 
+		 * @param proteinName
+		 */
+		public void addUnkProt(String proteinName) {
+			unknowns.add(proteinName);
 		}
 
+		/**
+		 * Increases the number of proteins that are known and misscalled in a
+		 * certain phase of the algorithm
+		 * 
+		 * @param phase
+		 */
 		public void addKnownMiscalled(String phase) {
 
 			table.get(phase)[1]++;
 		}
 
+		/**
+		 * Increases the number of proteins that are unknown in a certain phase
+		 * of the algorithm
+		 * 
+		 * @param phase
+		 */
 		public void addUnknown(String phase) {
 
 			table.get(phase)[2]++;
@@ -567,24 +595,24 @@ public class OrthogonalRecall {
 	 * @param interactomes
 	 */
 	public void finalStatistics(List<List<Interactome>> interactomes) {
-		
+
 		String bait;
 		String exp;
-	
+
 		List<String> bnames;
 		List<String> pooled = null;
 
 		boolean pool = false;
-		
+
 		StringBuilder log = new StringBuilder();
-		
 
 		for (int i = 0; i < interactomes.size(); i++) {
 
 			for (int j = 0; j < interactomes.get(i).size(); j++) {
 
-				bait = interactomes.get(i).get(j).getBait_name();
-				exp = interactomes.get(i).get(j).getExp_name();
+				final Interactome interactome = interactomes.get(i).get(j);
+				bait = interactome.getBait_name();
+				exp = interactome.getConditionName();
 
 				bnames = new ArrayList<String>();
 
@@ -612,8 +640,7 @@ public class OrthogonalRecall {
 						pnames = pooled;
 						pool = false;
 					} else {
-						pnames = interactomes.get(i).get(j).getNetwork(bname)
-								.getInteraction_names();
+						pnames = interactome.getNetwork(bname).getInteractorsNames();
 					}
 
 					if (pool) {
@@ -631,11 +658,9 @@ public class OrthogonalRecall {
 			}
 
 		}
-		
 
-		dataIO dIO = new dataIO();
+		MyFileChooser dIO = new MyFileChooser();
 		dIO.writeLog(logdir, log, "P3FinalStat");
-		
 
 	}
 
@@ -647,11 +672,11 @@ public class OrthogonalRecall {
 
 		preystats = new Hashtable<String, PreyStat>();
 
-		String expname;
+		String conditionName;
 
 		List<String> bnames = null;
 
-		Hashtable<String, List<String>> lut = new Hashtable<String, List<String>>();
+		Hashtable<String, List<String>> preysByCondition = new Hashtable<String, List<String>>();
 
 		for (Experiment exp : elist) {
 
@@ -675,34 +700,36 @@ public class OrthogonalRecall {
 
 			for (int i = 0; i < exp.getNumberofConditions(); i++) {
 
-				List<String> pnames = exp.getCondition(i).getPnames();
+				final Condition condition = exp.getCondition(i);
+				List<String> pnames = condition.getPnames();
 
-				expname = exp.getCondition(i).getName();
+				conditionName = condition.getName();
 
 				List<String> preyslist = new ArrayList<String>();
-				lut.put(expname, preyslist);
+				preysByCondition.put(conditionName, preyslist);
 
 				for (String pname : pnames) {
 
-					PreyStat ps = new PreyStat(pname + "_" + expname);
-					preystats.put(pname + "_" + expname, ps);
+					final String proteinConditionKey = pname + "_" + conditionName;
+					PreyStat ps = new PreyStat(proteinConditionKey);
+					preystats.put(proteinConditionKey, ps);
 
-					lut.get(expname).add(pname + "_" + expname);
+					preysByCondition.get(conditionName).add(proteinConditionKey);
 
 				}
 
 				for (String bname : bnames) {
 
-					String st_name = bname + "_"
-							+ exp.getCondition(i).getName();
+					String baitConditionKey = bname + "_" + conditionName;
 
-					ScoreTable st = scoretables.get(st_name);
+					ScoreTable st = scoretables.get(baitConditionKey);
 
 					List<String> preys = st.getRef();
 
 					for (String prey : preys) {
 
-						preystats.get(prey + "_" + expname).addBait(bname);
+						final String preyConditionKey = prey + "_" + conditionName;
+						preystats.get(preyConditionKey).addBait(bname);
 
 					}
 				}
@@ -710,18 +737,17 @@ public class OrthogonalRecall {
 			}
 		}
 
-		dataIO dIO = new dataIO();
+		MyFileChooser dIO = new MyFileChooser();
 
 		StringBuffer log = new StringBuffer();
 
-		Enumeration<String> enumkeys = lut.keys();
-		String key;
+		Enumeration<String> conditionNames = preysByCondition.keys();
 
-		while (enumkeys.hasMoreElements()) {
+		while (conditionNames.hasMoreElements()) {
 
-			key = enumkeys.nextElement();
+			conditionName = conditionNames.nextElement();
 
-			log.append(key.toUpperCase() + "\n");
+			log.append(conditionName.toUpperCase() + "\n");
 			log.append("Prey\t");
 
 			for (String bname : bnames) {
@@ -730,16 +756,16 @@ public class OrthogonalRecall {
 
 			log.append("\n");
 
-			List<String> pelements = lut.get(key);
-			Collections.sort(pelements);
+			List<String> preys = preysByCondition.get(conditionName);
+			Collections.sort(preys);
 
-			for (String pelement : pelements) {
+			for (String prey : preys) {
 
-				log.append(pelement + "\t");
+				log.append(prey + "\t");
 
 				for (String bname : bnames) {
 
-					if (preystats.get(pelement).isBait(bname)) {
+					if (preystats.get(prey).isBait(bname)) {
 						log.append("Known\t");
 					} else {
 						log.append("\t");

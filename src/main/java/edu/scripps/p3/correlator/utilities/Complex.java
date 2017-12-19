@@ -12,37 +12,42 @@ import java.util.List;
  *
  */
 public class Complex {
+	// a list of proteins per protein in an eperiment+condition
+	private List<List<String>> complexes;
 
-	List<List<String>> complexes;
-	
-	String bait;
-	String condition;
-	
+	private String bait;
+	private String condition;
+
 	public Complex() {
-	
+
 		complexes = new ArrayList<List<String>>();
 	}
-	
+
 	public Complex(String bait, String condition) {
-		
+
 		this.bait = bait;
 		this.condition = condition;
 		complexes = new ArrayList<List<String>>();
-		
+
 	}
-	
-	public void addComplex(List<String> element ) {
+
+	/**
+	 * Adds a list of proteins that have certain correlation
+	 * 
+	 * @param element
+	 */
+	public void addComplex(List<String> element) {
 		complexes.add(element);
 	}
-	
+
 	public List<List<String>> getComplexes() {
 		return complexes;
 	}
-	
+
 	public String getBait() {
 		return bait;
 	}
-	
+
 	public String getCondition() {
 		return condition;
 	}

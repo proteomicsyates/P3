@@ -19,9 +19,11 @@ import java.util.List;
 
 import javax.swing.JFileChooser;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * create the biogrid physical and gentic from the downloaded biogrid file
- * 
+ *
  * @author diego
  *
  */
@@ -170,7 +172,7 @@ public class Bioparser {
 			log.append(names[0] + "\t" + names[1] + "\t" + score + "\n");
 		}
 
-		File fout = new File(out, filename + filter + ".txt");
+		File fout = new File(out, FilenameUtils.getBaseName(filename) + "_" + filter + ".txt");
 		try {
 			Writer wout = new BufferedWriter(new FileWriter(fout));
 			wout.write(log.toString());

@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 public class PreFilterUtils {
 	protected final static String replicateREGEXP = "AREA_RATIO_1_(\\d+)";
-	protected static final String ACC = "LOCUS";
-	protected static final String DESCRIPTION = "DESCRIPTION";
+	public static final String ACC = "LOCUS";
+	public static final String DESCRIPTION = "DESCRIPTION";
 	private static final Pattern area_ratio_x_regexp = Pattern.compile(replicateREGEXP);
 
-	protected static Map<String, Integer> getIndexesByHeaders(String headerLine) {
+	public static Map<String, Integer> getIndexesByHeaders(String headerLine) {
 		return getIndexesByHeaders(headerLine.split("\t"));
 	}
 
@@ -37,11 +37,11 @@ public class PreFilterUtils {
 		return sb.toString();
 	}
 
-	protected static Map<Integer, Integer> getIndexbyReplicate(String headerLine) {
-		return getIndexesByReplicate(headerLine.split("\t"));
+	public static Map<Integer, Integer> getRatioIndexesByReplicate(String headerLine) {
+		return getRatioIndexesByReplicate(headerLine.split("\t"));
 	}
 
-	protected static Map<Integer, Integer> getIndexesByReplicate(String[] splitedHeaderLine) {
+	public static Map<Integer, Integer> getRatioIndexesByReplicate(String[] splitedHeaderLine) {
 		Map<Integer, Integer> ret = new HashMap<Integer, Integer>();
 
 		for (int index = 0; index < splitedHeaderLine.length; index++) {
@@ -50,6 +50,17 @@ public class PreFilterUtils {
 			if (matcher.find()) {
 				int numRep = Integer.valueOf(matcher.group(1));
 				ret.put(numRep, index);
+			}
+		}
+		if (ret.isEmpty()) {
+			// try wwith ratios_1
+			for (int index = 0; index < splitedHeaderLine.length; index++) {
+				String headerName = splitedHeaderLine[index];
+				final Matcher matcher = Pattern.compile("RATIOS_(\\d+)").matcher(headerName);
+				if (matcher.find()) {
+					int numRep = Integer.valueOf(matcher.group(1));
+					ret.put(numRep, index);
+				}
 			}
 		}
 		return ret;

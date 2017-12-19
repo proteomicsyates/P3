@@ -5,39 +5,39 @@ import java.util.List;
 
 public class Features {
 
-	Hashtable<String, List<Double>> data;
-	List<String> plist;
+	Hashtable<String, List<Double>> featuresPerPrey;
+	List<String> preyList;
 	String name;
 	double threshold;
-	
-	public Features(String n, Hashtable<String, List<Double>> d, List<String> p) {
+
+	public Features(String n) {
 		name = n;
-		data = d;
-		plist = p;
+
 	}
-	
-	public void setData(Hashtable<String, List<Double>> d) {
-		data = d;
+
+	public void setFeaturesPerPreyData(List<String> preysWithFeatures, Hashtable<String, List<Double>> d) {
+		featuresPerPrey = d;
+		this.preyList = preysWithFeatures;
 	}
-	
-	public Hashtable<String,List<Double>> getData() {
-		return data;
+
+	public Hashtable<String, List<Double>> getFeaturesByPrey() {
+		return featuresPerPrey;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-		
-	public List<String> getPlist() {
-		return plist;
+
+	public List<String> getPreylist() {
+		return preyList;
 	}
-	
+
 	public void setThreshold(double t) {
 		this.threshold = t;
 	}
-	
+
 	public double getThreshold() {
 		return this.threshold;
 	}
-	
+
 }

@@ -11,74 +11,80 @@ import java.util.List;
 import edu.scripps.p3.cluterer.utilities.Features;
 import edu.scripps.p3.experimentallist.network.interaction.Interaction;
 
-
 /**
  * @author diego
  *
  */
 public class Network {
 
-	private String exp_name;
-	private Hashtable<String,Interaction> interactions;
+	private String bait;
+	private Hashtable<String, Interaction> interactionsByInteractorName;
 	private Features feats;
+
 	/**
 	 * @return the interaction_names
 	 */
-	public List<String> getInteraction_names() {
-		return interaction_names;
+	public List<String> getInteractorsNames() {
+		return interactorNames;
 	}
 
-	private List<String> interaction_names;
+	private List<String> interactorNames;
 	private boolean empty;
-	
-	public Network(String name) {
-		this.exp_name = name;
+
+	public Network(String proteinName) {
+		this.bait = proteinName;
 		this.empty = true;
 	}
-	
-	public void addInteraction(String inter_name, Interaction inter) {
+
+	public void addInteraction(String interactorName, Interaction inter) {
 		if (empty) {
-			interactions = new Hashtable<String,Interaction>();
-			interaction_names = new ArrayList<String>();
+			interactionsByInteractorName = new Hashtable<String, Interaction>();
+			interactorNames = new ArrayList<String>();
 			empty = false;
 		}
-		
-		if (!interactions.containsKey(inter_name)) {
-			interactions.put(inter_name, inter);
-			interaction_names.add(inter_name);
+
+		if (!interactionsByInteractorName.containsKey(interactorName)) {
+			interactionsByInteractorName.put(interactorName, inter);
+			interactorNames.add(interactorName);
 		}
-			
+
 	}
-	
-	public Interaction getInteraction(String name) {
-		return interactions.get(name);
+
+	public Interaction getInteractionByInteractorName(String proteinName) {
+		return interactionsByInteractorName.get(proteinName);
 	}
-	
-	public String getExpName() {
-		return exp_name;
+
+	/**
+	 * Gets the name of the protein of this network. This protein contains some
+	 * interactors in this network. To obtain them, call getInteracorsNames()
+	 * 
+	 * @return
+	 */
+	public String getBait() {
+		return bait;
 	}
-	
+
 	public void setFeatures(Features feats) {
 		this.feats = feats;
 	}
-	
-	public Hashtable<String,List<Double>> getFeaturesValues() {
-		return feats.getData();
+
+	public Hashtable<String, List<Double>> getFeaturesValues() {
+		return feats.getFeaturesByPrey();
 	}
-	
-	public boolean isInNetwork(String name) {
-		if (interactions.containsKey(name)) {
+
+	public boolean isInNetwork(String interactorName) {
+		if (interactionsByInteractorName.containsKey(interactorName)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
-	public void removeInteraction(String name) {
-		if (isInNetwork(name)) {
-			interactions.remove(name);
-			interaction_names.remove(name);
+
+	public void removeInteraction(String interactorName) {
+		if (isInNetwork(interactorName)) {
+			interactionsByInteractorName.remove(interactorName);
+			interactorNames.remove(interactorName);
 		}
 	}
-	
+
 }

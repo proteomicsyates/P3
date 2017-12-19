@@ -15,7 +15,7 @@ import java.util.List;
 
 import javax.swing.JComboBox;
 
-
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
 
@@ -37,14 +37,14 @@ public class Controls extends Inputs {
 	 * @param exp
 	 * @param elist
 	 */
-	public Controls(String[] files, File inputdir, String[] baits,
-			String[] exp, List<Experiment> elist) {
+	public Controls(String[] files, File inputdir, String[] baits, String[] exp, List<Experiment> elist) {
 		super(files, inputdir, baits, exp, elist);
 
 	}
 
+	@Override
 	protected void parseFiles() {
-	
+
 		File f;
 		int baitindex;
 		int expindex;
@@ -59,12 +59,12 @@ public class Controls extends Inputs {
 			baitindex = assignments.get(i)[0];
 			expindex = assignments.get(i)[1];
 
-			if (baitindex ==0 ) {
+			if (baitindex == 0) {
 				allbait = true;
 			} else {
 				baitindex--;
 			}
-			if (expindex == 0 ) {
+			if (expindex == 0) {
 				allexp = true;
 			} else {
 				expindex--;
@@ -75,17 +75,23 @@ public class Controls extends Inputs {
 			try {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
-				BufferedReader dis = new BufferedReader(new InputStreamReader(
-						bis));
+				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 				String dataline;
-
+				boolean dataStarts = false;
 				while ((dataline = dis.readLine()) != null) {
-
-					if (!dataline.startsWith("Locus")) {
+					if (dataline.startsWith("Unique")) {
+						dataStarts = true;
+						continue;
+					}
+					if (dataStarts && dataline.contains("\t") && "Proteins".equals(dataline.split("\t")[1])) {
+						break;
+					}
+					if (dataStarts && dataline.contains("\t") && !"".equals(dataline.split("\t")[0])
+							&& !"*".equals(dataline.split("\t")[0])) {
 
 						Protein p = getProtein(dataline);
-					
+
 						if (p.getScount() > 0) {
 							if (allbait && allexp) {
 								fullFilter(p);
@@ -121,7 +127,7 @@ public class Controls extends Inputs {
 		this.hbound = hbound;
 		this.twotails = twotails;
 	}
-	
+
 	public void setFilterMethod(boolean method) {
 		if (method) {
 			this.method = true;
@@ -131,57 +137,55 @@ public class Controls extends Inputs {
 	}
 
 	private void fullFilter(Protein p) {
-		
-		for (int i=0; i < elist.size(); i++) {
+
+		for (int i = 0; i < elist.size(); i++) {
 			fullexpFilter(p, i);
 		}
-		
+
 	}
-	
+
 	private void fullbaitFilter(Protein p, int expindex) {
-		
-		for (int i=0; i < elist.size(); i++) {
+
+		for (int i = 0; i < elist.size(); i++) {
 			singleFilter(p, expindex, i);
 		}
-		
+
 	}
-	
+
 	private void fullexpFilter(Protein p, int baitindex) {
-		
-		for (int i=0; i < elist.get(baitindex).getNumberofConditions(); i++) {
+
+		for (int i = 0; i < elist.get(baitindex).getNumberofConditions(); i++) {
 			singleFilter(p, i, baitindex);
 		}
-		
+
 	}
-	
-	
+
 	private void singleFilter(Protein p, int expindex, int baitindex) {
 
 		double controlSC = p.getScount();
 		double expSC;
 		double ratio;
 
-		if (elist.get(baitindex).getCondition(expindex)
-				.proteinInTable(p.getName())) {
+		final Experiment experiment = elist.get(baitindex);
+		final Condition condition = experiment.getCondition(expindex);
+		if (condition.proteinInTable(p.getName())) {
 
-			expSC = elist.get(baitindex).getCondition(expindex)
-					.getProtein(p.getName()).getScount();
+			final Protein ipProtein = condition.getProtein(p.getName());
+			expSC = ipProtein.getScount();
 
 			ratio = expSC / controlSC;
 
 			if (twotails) {
 
 				if (ratio > lbound && ratio < hbound) {
-					elist.get(baitindex).getCondition(expindex)
-							.removeProtein(p.getName());
+					condition.removeProtein(p.getName());
 				}
 
 			} else {
 
 				if (ratio < hbound) {
 
-					elist.get(baitindex).getCondition(expindex)
-							.removeProtein(p.getName());
+					condition.removeProtein(p.getName());
 
 				}
 
@@ -191,10 +195,12 @@ public class Controls extends Inputs {
 
 	}
 
+	@Override
 	protected void setTitle() {
 		title = "Controls Resolver";
 	}
 
+	@Override
 	protected JComboBox<String> getBox(String[] elements) {
 		JComboBox<String> box = new JComboBox<String>();
 

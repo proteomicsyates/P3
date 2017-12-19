@@ -1,10 +1,8 @@
 /**
- * diego
- * Jun 11, 2013
+ * diego Jun 11, 2013
  */
 package edu.scripps.p3.parsers.inputs;
 
-import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -26,24 +24,25 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import org.apache.log4j.Logger;
+
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.parsers.inputs.utilities.ApvCalculator;
-import edu.scripps.p3.parsers.inputs.utilities.CoverageFixer;
+import edu.scripps.p3.parsers.inputs.utilities.NewCoverageFixer;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
-
-
+import edu.scripps.yates.utilities.fasta.FastaParser;
 
 /**
  * @author diego
- * 
+ *
  */
 public class Inputs {
-
+	private final static Logger log = Logger.getLogger(Inputs.class);
 	String[] files;
 	String[] baits;
 	String[] exp;
@@ -54,22 +53,21 @@ public class Inputs {
 	InputPanel ip;
 
 	List<int[]> assignments;
-	
+
 	File inputdir;
 	String title;
-	
-	private File rootdir;
+
+	public File rootdir;
 
 	/**
-	 * 
+	 *
 	 * @param files
-	 * @param inputdir 
+	 * @param inputdir
 	 * @param baits
 	 * @param exp
 	 * @param elist
 	 */
-	public Inputs(String[] files, File inputdir, String[] baits, String[] exp,
-			List<Experiment> elist) {
+	public Inputs(String[] files, File inputdir, String[] baits, String[] exp, List<Experiment> elist) {
 
 		this.files = files;
 		this.baits = baits;
@@ -94,15 +92,15 @@ public class Inputs {
 	protected void setTitle() {
 		title = "Input Resolver";
 	}
-	
+
 	public void setRootDir(File rootdir) {
 		this.rootdir = rootdir;
 	}
-	
+
 	private void createAndShowGUI() {
 
 		setTitle();
-		
+
 		frame = new JFrame(title);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -116,8 +114,9 @@ public class Inputs {
 
 		JButton process = new JButton("Done");
 		process.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-					
+
 				frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 				parseFiles();
 				frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
@@ -135,8 +134,8 @@ public class Inputs {
 		int frame_w = frame.getSize().width;
 		int frame_h = frame.getSize().height;
 		frame.setLocation((dim.width - frame_w) / 2, (dim.height - frame_h) / 2);
-		
-		if (files.length>20) {
+
+		if (files.length > 20) {
 			mockassign();
 		} else {
 			frame.setVisible(true);
@@ -145,36 +144,36 @@ public class Inputs {
 	}
 
 	private void mockassign() {
-		
+
 		String cbait;
-		
-		for (int i=0; i < files.length; i++) {
-			
-			for (int j=0; j < baits.length; j++) {
-				
+
+		for (int i = 0; i < files.length; i++) {
+
+			for (int j = 0; j < baits.length; j++) {
+
 				cbait = files[i].split("_")[1];
-				
+
 				if (cbait.equals(baits[j])) {
-					
-				//	int [] val = new int[2];
-				//	val[0] = j;
-					
-					assignments.get(i)[0]=j;
-					
+
+					// int [] val = new int[2];
+					// val[0] = j;
+
+					assignments.get(i)[0] = j;
+
 					break;
-					
+
 				}
-				
+
 			}
-			
+
 		}
-		
+
 		parseFiles();
-		
+
 		frame.dispose();
-		
+
 	}
-	
+
 	public List<Experiment> getExperiments() {
 		return elist;
 	}
@@ -187,42 +186,51 @@ public class Inputs {
 
 		for (int i = 0; i < files.length; i++) {
 
-			f = new File(inputdir,files[i]);
+			f = new File(inputdir, files[i]);
 
 			baitindex = assignments.get(i)[0];
 			expindex = assignments.get(i)[1];
+			final Experiment experiment = elist.get(baitindex);
+			final Condition conditionFromExperiment = experiment.getCondition(expindex);
 
 			FileInputStream fis;
 
 			try {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
-				BufferedReader dis = new BufferedReader(new InputStreamReader(
-						bis));
+				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 				String dataline;
-
+				boolean dataStarts = false;
 				while ((dataline = dis.readLine()) != null) {
+					if (dataline.startsWith("Unique")) {
+						dataStarts = true;
+						continue;
+					}
+					if (dataStarts && dataline.contains("\t") && "Proteins".equals(dataline.split("\t")[1])) {
+						break;
+					}
+					if (dataStarts && dataline.contains("\t") && !"".equals(dataline.split("\t")[0])
+							&& !"*".equals(dataline.split("\t")[0])) {
 
-					if (!dataline.startsWith("Locus")) {
-						
 						Protein p = getProtein(dataline);
 
-						if (p.getName().length()>1) {
-							if (elist.get(baitindex).getCondition(expindex).proteinInTable(p.getName())) {
-								//merge proteins
-								Protein old = elist.get(baitindex).getCondition(expindex).getProtein(p.getName());
-								
+						if (p.getName().length() > 1) {
+
+							if (conditionFromExperiment.proteinInTable(p.getName())) {
+								// merge proteins
+								Protein old = conditionFromExperiment.getProtein(p.getName());
+
 								Protein merged = mergeP(old, p);
-								elist.get(baitindex).getCondition(expindex).addProtein(old.getName(), merged,false);
-								
-								
+								conditionFromExperiment.addProtein(old.getName(), merged, false);
+
 							} else {
-								//add protein
-								elist.get(baitindex).getCondition(expindex).addProtein(p.getName(), p, true);
+								// add protein
+								conditionFromExperiment.addProtein(p.getName(), p, true);
 							}
+
 						}
-												
+
 					}
 
 				}
@@ -234,89 +242,104 @@ public class Inputs {
 			}
 
 		}
-		
+
 		if (elist.get(0).getCondition(0).proteinInTable("ULK1")) {
 			System.out.println("Ulk1 in table");
 		}
-		
-		CoverageFixer cfix = new CoverageFixer(elist, rootdir);
+
+		// CoverageFixer cfix = new CoverageFixer(elist, rootdir);
+		NewCoverageFixer cfix = new NewCoverageFixer(elist, rootdir);
 		cfix.run();
-		
+
 		ApvCalculator acalc = new ApvCalculator(elist);
 		acalc.run();
-		
 
 	}
 
-	private Protein mergeP(Protein p1, Protein p2) {
-		
+	protected Protein mergeP(Protein p1, Protein p2) {
+
 		Protein p3 = null;
-	
+
 		String name = p1.getName();
 		String locus = p1.getLocus();
-		double sequenceCount = (p1.getPcount() + p2.getPcount())/2;
-		double specCount = (p1.getScount() + p2.getScount())/2;
-		double coverage = (p1.getCoverage() + p2.getCoverage())/2;
-		double lenght = (p1.getLength() + p2.getLength())/2;
-		double molweight = (p1.getMw() + p2.getMw())/2;
-		double pi = (p1.getPi() + p2.getPi())/2;
-		
+		double sequenceCount = (p1.getPcount() + p2.getPcount()) / 2;
+		double specCount = (p1.getScount() + p2.getScount()) / 2;
+		double coverage = (p1.getCoverage() + p2.getCoverage()) / 2;
+		double lenght = (p1.getLength() + p2.getLength()) / 2;
+		double molweight = (p1.getMw() + p2.getMw()) / 2;
+		double pi = (p1.getPi() + p2.getPi()) / 2;
+
 		p3 = new Protein(name, locus, sequenceCount, specCount, coverage, lenght, molweight, pi);
-		
+
 		return p3;
 	}
-	
-	protected Protein getProtein(String s) {
 
+	protected Protein getProtein(String s) {
 		String[] tmp = s.split("\t");
 
 		double sequenceCount = Double.parseDouble(tmp[1]);
 		double specCount = Double.parseDouble(tmp[2]);
+		if (tmp[3].endsWith("%")) {
+			tmp[3] = tmp[3].substring(0, tmp[3].length() - 1);
+		}
 		double coverage = Double.parseDouble(tmp[3]);
 		double lenght = Double.parseDouble(tmp[4]);
 		double molweight = Double.parseDouble(tmp[5]);
 		double pi = Double.parseDouble(tmp[6]);
+		String proteinDescription = tmp[8];
+		String fullAccession = tmp[0];
 
-		String locus = " ", name = " ";
-		if (tmp[0].startsWith("sp")) {
-
-			String[] tmp1 = tmp[0].split("\\|");
-			locus = tmp1[1].trim();
-
-			String[] tmp2 = tmp[9].split("=");
-			tmp2[2] = tmp2[2].replace(" PE", "");
-			
-			name = tmp2[2].trim();
-	//		name = tmp1[2].split("_")[0];
-			
-			if (tmp[10].equals("Y")) {
-				name = "";
-			}
-						
-			
-		} else {
-
-			if (!tmp[0].startsWith("contaminant") && !tmp[0].startsWith("Reverse")) {
-
-				if (tmp[0].startsWith("IPI")) {
-
-					String[] tmp2 = tmp[7].split(" ");
-					tmp2[1] = tmp2[1].split("=")[1];
-
-					name = tmp2[1].trim();
-					name = name.toUpperCase();
-					locus = tmp[0];
-
-				} else {
-					locus = tmp[0];
-					name = tmp[7].split(" ")[0];
-				}
-			}
-
+		// disabled by Salva
+		// String locus = " ", name = " ";
+		// if (tmp[0].startsWith("sp")) {
+		//
+		// String[] tmp1 = tmp[0].split("\\|");
+		// locus = tmp1[1].trim();
+		//
+		// String[] tmp2 = tmp[9].split("=");
+		// tmp2[2] = tmp2[2].replace(" PE", "");
+		//
+		// name = tmp2[2].trim();
+		// // name = tmp1[2].split("_")[0];
+		//
+		// if (tmp[10].equals("Y")) {
+		// name = "";
+		// }
+		//
+		// } else {
+		//
+		// if (!tmp[0].startsWith("contaminant") &&
+		// !tmp[0].startsWith("Reverse")) {
+		//
+		// if (tmp[0].startsWith("IPI")) {
+		//
+		// String[] tmp2 = tmp[7].split(" ");
+		// tmp2[1] = tmp2[1].split("=")[1];
+		//
+		// name = tmp2[1].trim();
+		// name = name.toUpperCase();
+		// locus = tmp[0];
+		//
+		// } else {
+		// locus = tmp[0];
+		// name = tmp[7].split(" ")[0];
+		// }
+		// }
+		//
+		// }
+		String locus = FastaParser.getUniProtACC(fullAccession);
+		if (locus == null) {
+			locus = fullAccession;
 		}
-
-		Protein p = new Protein(name, locus, sequenceCount, specCount,
-				coverage, lenght, molweight, pi);
+		String name = FastaParser.getGeneFromFastaHeader(proteinDescription);
+		if (name == null) {
+			// take the first word of the description
+			name = proteinDescription.substring(0, proteinDescription.indexOf(" "));
+			if (name == null) {
+				name = locus;
+			}
+		}
+		Protein p = new Protein(name, locus, sequenceCount, specCount, coverage, lenght, molweight, pi);
 
 		return p;
 
@@ -330,7 +353,7 @@ public class Inputs {
 		box.setSelectedIndex(0);
 		return box;
 	}
-	
+
 	private class InputPanel extends JPanel implements ActionListener {
 
 		List<JTextField> texts;
@@ -345,8 +368,8 @@ public class Inputs {
 
 			setLayout(new GridLayout(0, 3));
 
-			this.setAutoscrolls(getAutoscrolls());
-			
+			setAutoscrolls(getAutoscrolls());
+
 			for (int i = 0; i < files.length; i++) {
 				JTextField tfield = new JTextField(files[i]);
 				tfield.setEditable(false);
@@ -368,6 +391,7 @@ public class Inputs {
 
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
 
 			int index1, index2;

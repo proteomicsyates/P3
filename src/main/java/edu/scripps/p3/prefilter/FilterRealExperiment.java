@@ -101,7 +101,7 @@ public class FilterRealExperiment {
 		}
 		// The reader is now at the header line
 		final Map<String, Integer> indexesByHeaders = PreFilterUtils.getIndexesByHeaders(split);
-		final Map<Integer, Integer> indexesByReplicates = PreFilterUtils.getIndexesByReplicate(split);
+		final Map<Integer, Integer> indexesByReplicates = PreFilterUtils.getRatioIndexesByReplicate(split);
 		s = in.readLine(); // The reader is now at the first line of data
 		split = s.split("\t");
 

@@ -7,6 +7,7 @@ package edu.scripps.p3.parsers.inputs.utilities;
 import java.util.Enumeration;
 import java.util.List;
 
+import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 
 /**
@@ -29,14 +30,16 @@ public class ApvCalculator {
 	public void run() {
 		
 		for (int i=0; i < elist.size(); i++) {
-			for (int j=0; j < elist.get(i).getNumberofConditions(); j++) {
+			final Experiment experiment = elist.get(i);
+			for (int j=0; j < experiment.getNumberofConditions(); j++) {
 				
-				Enumeration<String> plist = elist.get(i).getCondition(j).getPlist();
+				final Condition condition = experiment.getCondition(j);
+				Enumeration<String> plist = condition.getPlist();
 				
 				while (plist.hasMoreElements()) {
 					String pname = plist.nextElement();
 					
-					elist.get(i).getCondition(j).getProtein(pname).calculateApv();
+					condition.getProtein(pname).calculateApv();
 					
 				}
 				

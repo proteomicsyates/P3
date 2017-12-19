@@ -25,8 +25,8 @@ public class Protein {
 	 * @param mw
 	 * @param pi
 	 */
-	public Protein(String name, String locus, double pcount, double scount,
-			double coverage, double length, double mw, double pi) {
+	public Protein(String name, String locus, double pcount, double scount, double coverage, double length, double mw,
+			double pi) {
 		super();
 		this.name = name;
 		this.locus = locus;
@@ -151,7 +151,8 @@ public class Protein {
 	}
 
 	/**
-	 * @param pi the pi to set
+	 * @param pi
+	 *            the pi to set
 	 */
 	public void setPi(double pi) {
 		this.pi = pi;
@@ -165,42 +166,50 @@ public class Protein {
 	}
 
 	/**
-	 * @param apv the apv to set
+	 * @param apv
+	 *            the apv to set
 	 */
 	public void setApv(double apv) {
 		this.apv = apv;
 	}
-	
+
 	public double getApvLow() {
 		return apv_lconf;
 	}
-	
+
 	public double getApvHigh() {
 		return apv_hconf;
 	}
-	
+
 	public void setMaxTheoCoverage(double mtc) {
-		this.max_theoretical_coverage=mtc;
+		this.max_theoretical_coverage = mtc;
 	}
-	
+
+	/**
+	 * Normalizes the coverage by the theoretical maximum coverage obtained by
+	 * the peptides that are detectable, meaning the peptides that comes from a
+	 * tryptic digestion
+	 * 
+	 * @return
+	 */
 	public double normalizeCoverage() {
-			
-		this.coverage = coverage/max_theoretical_coverage*100;
-		if (coverage>100) coverage = 100;
+
+		this.coverage = coverage / max_theoretical_coverage * 100;
+		if (coverage > 100)
+			coverage = 100;
 		return coverage;
 	}
-	
+
 	/**
 	 * calculate APV
 	 */
 	public void calculateApv() {
-		
-		this.apv = this.scount/this.coverage*100;
-		double confidence = (100-this.coverage)/100;
-		this.apv_lconf = this.apv - this.apv*confidence;
-		this.apv_hconf = this.apv + this.apv*confidence;
-		
-		
+
+		this.apv = this.scount / this.coverage * 100;
+		double confidence = (100 - this.coverage) / 100;
+		this.apv_lconf = this.apv - this.apv * confidence;
+		this.apv_hconf = this.apv + this.apv * confidence;
+
 	}
 
 }

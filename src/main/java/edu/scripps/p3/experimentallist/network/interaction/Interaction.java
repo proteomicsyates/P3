@@ -7,12 +7,14 @@ package edu.scripps.p3.experimentallist.network.interaction;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author diego
  *
  */
 public class Interaction {
-
+	private final static Logger log = Logger.getLogger(Interaction.class);
 	private String name;
 	private double correlation_score;
 	private double cluster_score;
@@ -27,16 +29,14 @@ public class Interaction {
 	private boolean gscores;
 	private boolean oscores;
 	private boolean lysatelike;
-	
-	
+
 	private double internal_score;
 	private double physical_score;
 	private double genetic_score;
 	private double confidence_score;
 	private int lysate_behavior;
 	private int quant_behvior;
-	
-	
+
 	public Interaction(String name) {
 		this.name = name;
 		correlation_score = 0;
@@ -46,11 +46,11 @@ public class Interaction {
 		gscores = false;
 		oscores = false;
 		lysatelike = false;
-		
+
 	}
 
 	public void addPhysical_score(double physical_score, double p_coef) {
-		
+
 		if (isPscores()) {
 			physical_scores.add(physical_score);
 			p_coefficient.add(p_coef);
@@ -61,11 +61,11 @@ public class Interaction {
 			physical_scores.add(physical_score);
 			p_coefficient.add(p_coef);
 		}
-		
+
 	}
-	
+
 	public void addGenetical_score(double genetical_score, double g_coef) {
-		
+
 		if (isGscores()) {
 			genetical_scores.add(genetical_score);
 			g_coefficient.add(g_coef);
@@ -76,11 +76,11 @@ public class Interaction {
 			genetical_scores.add(genetical_score);
 			g_coefficient.add(g_coef);
 		}
-		
+
 	}
-	
+
 	public void addOther_score(double other_score, double o_coef) {
-		
+
 		if (isOscores()) {
 			other_scores.add(other_score);
 		} else {
@@ -90,17 +90,20 @@ public class Interaction {
 			other_scores.add(other_score);
 			o_coefficient.add(o_coef);
 		}
-		
+
 	}
-	
+
 	public void setLysateLike(boolean value) {
+		if (this.getName().contains("SNF4")) {
+			log.info(value);
+		}
 		lysatelike = value;
 	}
-	
+
 	public boolean getLysateLike() {
 		return lysatelike;
 	}
-	
+
 	/**
 	 * @return the name
 	 */
@@ -116,9 +119,13 @@ public class Interaction {
 	}
 
 	/**
-	 * @param correlation_score the correlation_score to set
+	 * @param correlation_score
+	 *            the correlation_score to set
 	 */
 	public void setCorrelation_score(double correlation_score) {
+		if (this.getName().contains("REG1")) {
+			log.info(correlation_score);
+		}
 		this.correlation_score = correlation_score;
 	}
 
@@ -130,9 +137,13 @@ public class Interaction {
 	}
 
 	/**
-	 * @param cluster_score the cluster_score to set
+	 * @param cluster_score
+	 *            the cluster_score to set
 	 */
 	public void setCluster_score(double cluster_score) {
+		if (this.getName().contains("REG1")) {
+			log.info(cluster_score);
+		}
 		this.cluster_score = cluster_score;
 	}
 
@@ -144,7 +155,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param quant_score the quant_score to set
+	 * @param quant_score
+	 *            the quant_score to set
 	 */
 	public void setQuant_score(double quant_score) {
 		this.quant_score = quant_score;
@@ -214,7 +226,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param internal_score the internal_score to set
+	 * @param internal_score
+	 *            the internal_score to set
 	 */
 	public void setInternal_score(double internal_score) {
 		this.internal_score = internal_score;
@@ -228,7 +241,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param physical_score the physical_score to set
+	 * @param physical_score
+	 *            the physical_score to set
 	 */
 	public void setPhysical_score(double physical_score) {
 		this.physical_score = physical_score;
@@ -242,7 +256,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param genetic_score the genetic_score to set
+	 * @param genetic_score
+	 *            the genetic_score to set
 	 */
 	public void setGenetic_score(double genetic_score) {
 		this.genetic_score = genetic_score;
@@ -256,7 +271,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param confidence_score the confidence_score to set
+	 * @param confidence_score
+	 *            the confidence_score to set
 	 */
 	public void setConfidence_score(double confidence_score) {
 		this.confidence_score = confidence_score;
@@ -270,7 +286,8 @@ public class Interaction {
 	}
 
 	/**
-	 * @param lysate_behavior the lysate_behavior to set
+	 * @param lysate_behavior
+	 *            the lysate_behavior to set
 	 */
 	public void setLysate_behavior(int lysate_behavior) {
 		this.lysate_behavior = lysate_behavior;
@@ -284,12 +301,11 @@ public class Interaction {
 	}
 
 	/**
-	 * @param quant_behvior the quant_behvior to set
+	 * @param quant_behvior
+	 *            the quant_behvior to set
 	 */
 	public void setQuant_behvior(int quant_behvior) {
 		this.quant_behvior = quant_behvior;
 	}
-	
-	
-	
+
 }

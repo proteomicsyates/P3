@@ -22,6 +22,7 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import edu.scripps.p3.P3;
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.experimentallist.Orthogonal;
@@ -196,12 +197,17 @@ public class OptionsPanel extends JPanel {
 	}
 
 	private void selectBaits() {
+		File bait = null;
 
-		// TODO check for name of baits, format them as gene name
-		MyFileChooser dIO = new MyFileChooser(workingFolder);
-		File bait = dIO.openFile("Select Bait(s");
-		cdir = dIO.getCurDir();
-		rootdir = dIO.getCurDir();
+		if (!P3.test) {
+			// TODO check for name of baits, format them as gene name
+			MyFileChooser dIO = new MyFileChooser(workingFolder);
+			bait = dIO.openFile("Select Bait(s");
+		} else {
+			bait = new File(P3.baitFile);
+		}
+		cdir = bait;
+		rootdir = bait;
 
 		Baits bts = new Baits(bait);
 		bts.run();
@@ -234,11 +240,15 @@ public class OptionsPanel extends JPanel {
 		// want to use quantitative data?",
 		// "Type of data", JOptionPane.YES_NO_CANCEL_OPTION);
 		// if (userResponse == JOptionPane.NO_OPTION) {
-
-		MyFileChooser dIO = new MyFileChooser(rootdir);
-		File inputlist = dIO.openDir("Select Input Files Directory");
+		File inputlist = null;
+		if (!P3.test) {
+			MyFileChooser dIO = new MyFileChooser(rootdir);
+			inputlist = dIO.openDir("Select Input Files Directory");
+		} else {
+			inputlist = new File(P3.inputFolder);
+		}
 		inputfilelist = inputlist.list();
-		inputdir = dIO.getCurDir();
+		inputdir = inputlist;
 
 		elist = new ArrayList<Experiment>();
 		for (int i = 0; i < baits.length; i++) {
@@ -337,10 +347,12 @@ public class OptionsPanel extends JPanel {
 	}
 
 	private void selectOutput() {
-
-		MyFileChooser dIO = new MyFileChooser(rootdir);
-		outdir = dIO.getOutdir("Select Directory to save output files");
-
+		if (!P3.test) {
+			MyFileChooser dIO = new MyFileChooser(rootdir);
+			outdir = dIO.getOutdir("Select Directory to save output files");
+		} else {
+			outdir = new File(P3.outputFolder);
+		}
 		String childdir = outdir + File.separator + "log";
 
 		logdir = new File(childdir);
@@ -419,15 +431,18 @@ public class OptionsPanel extends JPanel {
 	}
 
 	private void selectLysate() {
-
-		MyFileChooser dIO = new MyFileChooser(rootdir);
-		File inputlist = dIO.openDir("Select Lysate Files Directory");
-
+		File inputlist = null;
+		if (!P3.test) {
+			MyFileChooser dIO = new MyFileChooser(rootdir);
+			inputlist = dIO.openDir("Select Lysate Files Directory");
+		} else {
+			inputlist = new File(P3.lysateFolder);
+		}
 		llist = new ArrayList<Differential>();
 
 		if (inputlist != null) {
 			lysatefilelist = inputlist.list();
-			lysatedir = dIO.getCurDir();
+			lysatedir = inputlist;
 			lysate = true;
 
 			java.util.Arrays.sort(lysatefilelist);
@@ -448,15 +463,19 @@ public class OptionsPanel extends JPanel {
 	}
 
 	private void selectQuantitative() {
-
-		MyFileChooser dIO = new MyFileChooser(rootdir);
-		File inputlist = dIO.openDir("Select Quantitative Files Directory");
+		File inputlist = null;
+		if (!P3.test) {
+			MyFileChooser dIO = new MyFileChooser(rootdir);
+			inputlist = dIO.openDir("Select Quantitative Files Directory");
+		} else {
+			inputlist = new File(P3.quantFolder);
+		}
 
 		qlist = new ArrayList<Differential>();
 
 		if (inputlist != null) {
 			quantitativefilelist = inputlist.list();
-			quantitativedir = dIO.getCurDir();
+			quantitativedir = inputlist;
 			quantitative = true;
 
 			java.util.Arrays.sort(quantitativefilelist);
@@ -478,16 +497,19 @@ public class OptionsPanel extends JPanel {
 	}
 
 	private void selectExternal() {
-
-		MyFileChooser dIO = new MyFileChooser(rootdir);
-		File inputlist = dIO.openDir("Select Orthogonal Files Directory");
-
+		File inputlist = null;
+		if (!P3.test) {
+			MyFileChooser dIO = new MyFileChooser(rootdir);
+			inputlist = dIO.openDir("Select Orthogonal Files Directory");
+		} else {
+			inputlist = new File(P3.orthogonalFolder);
+		}
 		olist = new ArrayList<Orthogonal>();
 
 		if (inputlist != null) {
 
 			orthogonalfilelist = inputlist.list();
-			orthogonaldir = dIO.getCurDir();
+			orthogonaldir = inputlist;
 			external = true;
 			for (int i = 0; i < orthogonalfilelist.length; i++) {
 				Orthogonal o = new Orthogonal(orthogonalfilelist[i]);

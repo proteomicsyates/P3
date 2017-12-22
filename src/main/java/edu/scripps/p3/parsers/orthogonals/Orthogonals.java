@@ -29,6 +29,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import org.apache.log4j.Logger;
+
 import edu.scripps.p3.experimentallist.Orthogonal;
 
 /**
@@ -36,7 +38,7 @@ import edu.scripps.p3.experimentallist.Orthogonal;
  * 
  */
 public class Orthogonals {
-
+	private static final Logger log = Logger.getLogger(Orthogonal.class);
 	String[] files;
 	File inputdir;
 
@@ -62,8 +64,8 @@ public class Orthogonals {
 	 * @param genetic
 	 * @param olist
 	 */
-	public Orthogonals(String[] orthogonalfilelist, File orthogonaldir,
-			boolean physical, boolean genetic, List<Orthogonal> olist) {
+	public Orthogonals(String[] orthogonalfilelist, File orthogonaldir, boolean physical, boolean genetic,
+			List<Orthogonal> olist) {
 		this.files = orthogonalfilelist;
 		this.inputdir = orthogonaldir;
 		this.physical = physical;
@@ -118,8 +120,9 @@ public class Orthogonals {
 
 		JButton process = new JButton("Done");
 		process.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-			
+
 				ip.getUserSelections();
 				frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 				parseFiles();
@@ -147,32 +150,35 @@ public class Orthogonals {
 
 		physical = false;
 		genetic = false;
-
+		log.info("Parsing orthogonal data files");
 		File f;
 		for (int i = 0; i < files.length; i++) {
 
 			olist.get(i).setCoefficient(coefficients.get(i));
-
+			String type = null;
 			if (assignments.get(i) == 0) {
 				olist.get(i).setType(Orthogonal.PHYSICAL);
+				type = Orthogonal.PHYSICAL;
 				physical = true;
 			} else {
 				olist.get(i).setType(Orthogonal.GENETIC);
+				type = Orthogonal.GENETIC;
 				genetic = true;
 			}
 
 			f = new File(inputdir, files[i]);
+			log.info("Parsing file " + f.getAbsolutePath() + " as " + type + " and weight=" + coefficients.get(i));
+
 			FileInputStream fis;
 
 			try {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
-				BufferedReader dis = new BufferedReader(new InputStreamReader(
-						bis));
+				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 				String dataline;
 				double value;
-
+				int counter = 0;
 				while ((dataline = dis.readLine()) != null) {
 
 					String[] element = dataline.split("\t");
@@ -180,9 +186,9 @@ public class Orthogonals {
 
 					value = Double.parseDouble(element[2]);
 					olist.get(i).addEntry(key, value);
-
+					counter++;
 				}
-
+				log.info(counter + " protein interactions readed. ");
 			} catch (FileNotFoundException e) {
 				System.err.println("file not found");
 			} catch (IOException e) {
@@ -258,21 +264,21 @@ public class Orthogonals {
 		}
 
 		public void getUserSelections() {
-			
+
 			int typeSelectedIndex;
 			int confidenceSelectedIndex;
 			String text;
 			double value;
-			
+
 			for (int i = 0; i < coeffs.size(); i++) {
-				
+
 				typeSelectedIndex = typelist.get(i).getSelectedIndex();
 				assignments.set(i, typeSelectedIndex);
 
 				confidenceSelectedIndex = conflist.get(i).getSelectedIndex();
-				
+
 				if (confidenceSelectedIndex == 3) {
-					
+
 					text = coeffs.get(i).getText();
 
 					if (text.length() == 0) {
@@ -282,26 +288,28 @@ public class Orthogonals {
 					}
 
 					coefficients.set(i, value);
-										
+
 				} else {
 
 					switch (confidenceSelectedIndex) {
 					case 0:
-						coefficients.set(i, 0.1); break;
-					case 1: 
-						coefficients.set(i, 0.5); break;
+						coefficients.set(i, 0.1);
+						break;
+					case 1:
+						coefficients.set(i, 0.5);
+						break;
 					case 2:
-						coefficients.set(i, 0.9); break;
+						coefficients.set(i, 0.9);
+						break;
 					}
 
 				}
-				
-				
-				
+
 			}
-			
+
 		}
-		
+
+		@Override
 		public void actionPerformed(ActionEvent e) {
 
 			int index;
@@ -319,7 +327,7 @@ public class Orthogonals {
 
 				if (index2 == 3) {
 					coeffs.get(i).setEnabled(true);
-				
+
 					text = coeffs.get(i).getText();
 
 					if (text.length() == 0) {
@@ -334,11 +342,14 @@ public class Orthogonals {
 
 					switch (index2) {
 					case 0:
-						coefficients.set(i, 0.1); break;
-					case 1: 
-						coefficients.set(i, 0.5); break;
+						coefficients.set(i, 0.1);
+						break;
+					case 1:
+						coefficients.set(i, 0.5);
+						break;
 					case 2:
-						coefficients.set(i, 0.9); break;
+						coefficients.set(i, 0.9);
+						break;
 					}
 
 				}

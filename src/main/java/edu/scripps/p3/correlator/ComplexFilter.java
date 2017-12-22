@@ -10,6 +10,8 @@ import java.util.List;
 
 import javax.swing.ProgressMonitor;
 
+import org.apache.log4j.Logger;
+
 import edu.scripps.p3.correlator.utilities.Complex;
 import edu.scripps.p3.experimentallist.Interactome;
 import edu.scripps.p3.experimentallist.network.Network;
@@ -21,7 +23,7 @@ import edu.scripps.p3.io.MyFileChooser;
  *
  */
 public class ComplexFilter {
-
+	private final static Logger staticLog = Logger.getLogger(ComplexFilter.class);
 	private final List<List<Complex>> complex_list;
 	private List<List<Interactome>> interactomes;
 	private final File logdir;
@@ -170,7 +172,9 @@ public class ComplexFilter {
 					}
 
 					double minProteinFrecuency = Math.min(protein1Frecuency, protein2Frecuency);
-
+					if (coupleProtein1.equals("REG1") || coupleProtein2.equals("REG1")) {
+						staticLog.info(coupleKey + "\t" + coupleFrecuency + " " + minProteinFrecuency);
+					}
 					ratio = coupleFrecuency / minProteinFrecuency;
 
 					if (ratio > correlation_threshold) { // it was 0.01

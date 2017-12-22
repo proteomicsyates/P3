@@ -8,6 +8,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Interactome;
 
@@ -16,7 +18,7 @@ import edu.scripps.p3.experimentallist.Interactome;
  *
  */
 public class LysateTrendFinder {
-
+	private final static Logger log = Logger.getLogger(LysateTrendFinder.class);
 	private List<Differential> qlist;
 	private List<Differential> llist;
 	private List<List<Interactome>> interactomes;
@@ -57,9 +59,12 @@ public class LysateTrendFinder {
 
 		for (int i = 0; i < qlist.size(); i++) {
 
-			Hashtable<String, Double> qvalues = qlist.get(i).getData();
-			Hashtable<String, Double> lvalues = llist.get(i).getData();
-
+			final Differential differential = qlist.get(i);
+			Hashtable<String, Double> qvalues = differential.getData();
+			final Differential differential2 = llist.get(i);
+			Hashtable<String, Double> lvalues = differential2.getData();
+			log.info("Looking for quantitative trends between the lysate " + lvalues.size() + " and the experiment "
+					+ qvalues.size() + " in bait " + differential.getName());
 			Enumeration<String> enumKey = qvalues.keys();
 
 			while (enumKey.hasMoreElements()) {
@@ -70,6 +75,9 @@ public class LysateTrendFinder {
 				if (lvalues.containsKey(key)) {
 
 					lysate = lvalues.get(key);
+					if (key.contains("SNF4")) {
+						log.info(quant + "/" + lysate);
+					}
 					ratio = quant / lysate;
 
 					if (ratio > lowT && ratio < highT) {

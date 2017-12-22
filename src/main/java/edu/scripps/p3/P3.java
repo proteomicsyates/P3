@@ -7,9 +7,12 @@
 package edu.scripps.p3;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+
+import org.apache.commons.lang.time.DateFormatUtils;
 
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Experiment;
@@ -26,8 +29,19 @@ import edu.scripps.yates.utilities.dates.DatesUtil;
  * @version 1.0
  */
 public class P3 {
+	public static final String formatedDate = DateFormatUtils.format(new Date(), "yyyy-MM-dd_HH-mm");
+	public static final String quantFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\quant";
+	public static final String baitFile = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\bait - pool.txt";
+	public static final String orthogonalFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\orthogonal\\new";
+	public static final String lysateFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\quant_lysate";
+	public static final String outputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\output_"
+			+ formatedDate;
+	public static final String inputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\DTASelects";
+	public static final String fastaFile = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\fasta\\SGD_S-cerevisiae_current_10_2010_01-05-2010_reversed.fasta";
 
 	private static Object lock = new Object();
+
+	public static boolean test = true;
 
 	private List<Experiment> elist; // for input file data
 	private List<Differential> qlist; // for quant file data

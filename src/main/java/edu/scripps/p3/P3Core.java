@@ -149,6 +149,8 @@ public class P3Core {
 			System.out.println("Done in " + DatesUtil.getDescriptiveTimeFromMillisecs(end - start));
 		}
 
+		// iterates over all the interactomes and removes the clusters that
+		// doesn't contain any of the baits.
 		InteractomesCleaner ic = new InteractomesCleaner(interactomes, baits);
 		ic.run();
 		interactomes = ic.getInteractomes();

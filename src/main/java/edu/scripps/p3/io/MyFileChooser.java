@@ -12,26 +12,29 @@ import java.io.Writer;
 
 import javax.swing.JFileChooser;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author diego
  * 
  */
 public class MyFileChooser {
+	private final static Logger log = Logger.getLogger(MyFileChooser.class);
+	private File curdir = null;
 
-	private File curdir=null;
-	
-	public MyFileChooser(){ 
-		
+	public MyFileChooser() {
+
 	}
-	
+
 	public MyFileChooser(File curdir) {
 		this.curdir = curdir;
 	}
-	
+
 	/**
 	 * 
-	 * @param title require dialog title
-	 * @return output directory, error code -2 if not 
+	 * @param title
+	 *            require dialog title
+	 * @return output directory, error code -2 if not
 	 */
 	public File getOutdir(String title) {
 
@@ -103,20 +106,27 @@ public class MyFileChooser {
 		}
 
 	}
-	
+
 	public File getCurDir() {
 		return curdir;
 	}
-	
+
 	public void setCurDir(File curdir) {
 		this.curdir = curdir;
 	}
-	
+
 	public void writeLog(File outdir, StringBuffer log, String title) {
 
 		File fout = new File(outdir, title + ".txt");
 
 		try {
+			if (!fout.exists()) {
+				final File parentFile = fout.getParentFile();
+				final boolean mkdirs = parentFile.mkdirs();
+				if (mkdirs) {
+					MyFileChooser.log.info(parentFile.getAbsolutePath() + " folder created");
+				}
+			}
 			Writer out = new BufferedWriter(new FileWriter(fout));
 			out.write(log.toString());
 			out.close();
@@ -127,7 +137,7 @@ public class MyFileChooser {
 		}
 
 	}
-	
+
 	public void writeLog(File outdir, StringBuilder log, String title) {
 
 		File fout = new File(outdir, title + ".txt");
@@ -143,12 +153,21 @@ public class MyFileChooser {
 		}
 
 	}
-	
+
 	public void saveTopology(File outdir, String map, String title) {
-		
+
 		File fout = new File(outdir, title + ".dat");
 
 		try {
+			if (!fout.exists()) {
+				final File parentFile = fout.getParentFile();
+				if (!parentFile.exists()) {
+					final boolean mkdirs = parentFile.mkdirs();
+					if (mkdirs) {
+						log.info(parentFile.getAbsolutePath() + " folder created");
+					}
+				}
+			}
 			Writer out = new BufferedWriter(new FileWriter(fout));
 			out.write(map);
 			out.close();

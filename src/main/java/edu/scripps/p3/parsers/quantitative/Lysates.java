@@ -45,6 +45,7 @@ public class Lysates extends Quantitatives {
 
 	@Override
 	protected void parseFiles() {
+		log.info("Parsing quant lysate files...");
 
 		File f;
 		int baitindex;
@@ -53,6 +54,7 @@ public class Lysates extends Quantitatives {
 		for (int i = 0; i < files.length; i++) {
 
 			f = new File(inputdir, files[i]);
+			log.info("Parsing lysate quant file '" + f.getAbsolutePath() + "'...");
 
 			baitindex = assignments.get(i);
 
@@ -100,9 +102,17 @@ public class Lysates extends Quantitatives {
 							}
 							// make the median
 							double value = median.evaluate(ratioArray);
+							final String description = elements[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)];
 
-							String pname = FastaParser
-									.getGeneFromFastaHeader(elements[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)]);
+							String pname = FastaParser.getGeneFromFastaHeader(description);
+							if (pname == null) {
+								// get the gene name from the first word of the
+								// description
+								if (description.contains(" ")) {
+									pname = description.split(" ")[0];
+								}
+
+							}
 							if (pname == null) {
 								pname = elements[indexesByHeaders.get(PreFilterUtils.ACC)];
 							}
@@ -119,7 +129,7 @@ public class Lysates extends Quantitatives {
 			} catch (IOException e) {
 				System.err.println("unable to read file");
 			}
-
+			log.info(dlist.get(baitindex).getData().size() + " proteins read");
 		}
 
 	}

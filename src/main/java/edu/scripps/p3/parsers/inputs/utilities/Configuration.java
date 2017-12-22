@@ -3,6 +3,8 @@
  */
 package edu.scripps.p3.parsers.inputs.utilities;
 
+import edu.scripps.p3.gui.AdvancedMode;
+
 /**
  * @author diego
  *
@@ -26,20 +28,20 @@ public class Configuration {
 
 	public void defaultState() {
 		setValid(true);
-		setCorrelationT(0.01);
-		setQuantitativeLevel(2);
-		setCorrelationW(0.1);
-		setClusterW(0.2);
-		setQuantitativeW(0.3);
-		setInternalW(1.0);
-		setPhysicalW(0.6);
-		setGeneticW(0.2);
-		setConfidenceT(0.5);
-		setConfidenceOrtoT(0.1);
-		setRapidCorrelation(true);
-		setQuantFeatures(false);
+		setCorrelationT(AdvancedMode.CORRT);// 0.01);
+		setQuantitativeLevel(AdvancedMode.QUANTT);// 2);
+		setCorrelationW(AdvancedMode.CORR);// 0.1);
+		setClusterW(AdvancedMode.CLUS);// 0.2);
+		setQuantitativeW(AdvancedMode.QUANT);// 0.3);
+		setInternalW(AdvancedMode.INTER);// 1.0);
+		setPhysicalW(AdvancedMode.PHY);// 0.6);
+		setGeneticW(AdvancedMode.GEN);// 0.2);
+		setConfidenceT(AdvancedMode.CONF);// 0.5);
+		setConfidenceOrtoT(AdvancedMode.CONFORTO);// 0.1);
+		setRapidCorrelation(AdvancedMode.RAPID.equals("Y") ? true : false);// true);
+		setQuantFeatures(AdvancedMode.QCLU.equals("Y") ? true : false);// false);
 		// low complexity
-		setSpcCorrelationT(0.25);
+		setSpcCorrelationT(0.25); // rSquaredThreshold
 		// high complexity
 		// setSpcCorrelationT(0.5);
 	}

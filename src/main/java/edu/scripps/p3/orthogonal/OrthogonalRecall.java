@@ -258,9 +258,9 @@ public class OrthogonalRecall {
 
 			for (int j = 0; j < interactomes.get(i).size(); j++) {
 
-				final Interactome interactome = interactomes.get(i).get(j);
-				bait = interactome.getBait_name();
-				condition = interactome.getConditionName();
+				final Interactome interactomeCondition = interactomes.get(i).get(j);
+				bait = interactomeCondition.getBait_name();
+				condition = interactomeCondition.getConditionName();
 
 				bnames = new ArrayList<String>();
 
@@ -282,28 +282,28 @@ public class OrthogonalRecall {
 
 				for (String bname : bnames) {
 
-					List<String> pnames;
+					List<String> interactors;
 
 					if (bname.equals("pool")) {
-						pnames = pooled;
+						interactors = pooled;
 						pool = false;
 					} else {
-						pnames = interactome.getNetwork(bname).getInteractorsNames();
+						interactors = interactomeCondition.getNetwork(bname).getInteractorsNames();
 					}
 
 					if (pool) {
-						for (String pname : pnames) {
-							if (!pooled.contains(pname)) {
-								pooled.add(pname);
+						for (String interactor : interactors) {
+							if (!pooled.contains(interactor)) {
+								pooled.add(interactor);
 							}
 						}
 					}
 
-					calculate(bname, condition, pnames);
+					calculate(bname, condition, interactors);
 
 				}
 
-				findMis(bnames, condition);
+				findMisCalled(bnames, condition);
 
 			}
 
@@ -319,7 +319,7 @@ public class OrthogonalRecall {
 	 * @param bnames
 	 * @param condition
 	 */
-	private void findMis(List<String> bnames, String condition) {
+	private void findMisCalled(List<String> bnames, String condition) {
 
 		for (String bname1 : bnames) {
 
@@ -339,8 +339,8 @@ public class OrthogonalRecall {
 
 						scoreTable1.addKnownMiscalled(phase);
 						// lost.remove(i);
-						// i--;
 						lost.remove(lostInteractor);
+						i--;
 
 					}
 
@@ -367,7 +367,7 @@ public class OrthogonalRecall {
 		StringBuilder novel = new StringBuilder();
 
 		for (String pname : pnames) {
-			if (st.ProtInRef(pname)) {
+			if (st.protInReferenceOrthogonal(pname)) {
 
 				known.append(pname);
 				known.append("\t");
@@ -411,7 +411,7 @@ public class OrthogonalRecall {
 		// add lost
 
 		for (String p3Interactor : p3Interactors) {
-			if (st.ProtInRef(p3Interactor)) {
+			if (st.protInReferenceOrthogonal(p3Interactor)) {
 				st.addKnownAndCalled(phase);
 			} else {
 				st.addUnknown(phase);
@@ -420,9 +420,9 @@ public class OrthogonalRecall {
 
 		}
 
-		for (String pname : st.getRef()) {
-			if (!p3Interactors.contains(pname)) {
-				st.addLost(pname);
+		for (String knownInteractorInOrthogonalData : st.getProteinsInReferenceOrthogonal()) {
+			if (!p3Interactors.contains(knownInteractorInOrthogonalData)) {
+				st.addLost(knownInteractorInOrthogonalData);
 			}
 		}
 
@@ -559,7 +559,7 @@ public class OrthogonalRecall {
 			return reference.size();
 		}
 
-		public boolean ProtInRef(String prot) {
+		public boolean protInReferenceOrthogonal(String prot) {
 			if (reference.contains(prot)) {
 				return true;
 			} else {
@@ -567,7 +567,7 @@ public class OrthogonalRecall {
 			}
 		}
 
-		public List<String> getRef() {
+		public List<String> getProteinsInReferenceOrthogonal() {
 			return reference;
 		}
 
@@ -724,7 +724,7 @@ public class OrthogonalRecall {
 
 					ScoreTable st = scoretables.get(baitConditionKey);
 
-					List<String> preys = st.getRef();
+					List<String> preys = st.getProteinsInReferenceOrthogonal();
 
 					for (String prey : preys) {
 

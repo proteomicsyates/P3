@@ -32,6 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.log4j.Logger;
 
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.gui.OptionsPanel;
@@ -43,7 +44,7 @@ import edu.scripps.yates.utilities.fasta.FastaParser;
  *
  */
 public class Quantitatives {
-
+	protected static final Logger log = Logger.getLogger(Quantitatives.class);
 	protected String[] files;
 	protected String[] baits;
 
@@ -56,9 +57,6 @@ public class Quantitatives {
 	protected String title;
 
 	InputPanel ip;
-
-	// ENABLE OR DISABLE THE FILTER BY QUANT
-	private final boolean filterByQuantEnabled = true;
 
 	/**
 	 * @param quantitativefilelist
@@ -149,7 +147,7 @@ public class Quantitatives {
 	}
 
 	protected void parseFiles() throws IOException {
-
+		log.info("Parsing quant files...");
 		final Set<String> validProteins = new HashSet<String>();
 		// read the file from mathieu, ending by _Sig_WithoutNonSpecific
 		for (String fileName : files) {
@@ -167,6 +165,7 @@ public class Quantitatives {
 				continue;
 			}
 			f = new File(inputdir, files[i]);
+			log.info("Parsing quant file '" + f.getAbsolutePath() + "'...");
 
 			baitindex = assignments.get(i);
 
@@ -217,8 +216,16 @@ public class Quantitatives {
 						// make the median
 						double value = median.evaluate(ratioArray);
 
-						String pname = FastaParser
-								.getGeneFromFastaHeader(element[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)]);
+						final String description = element[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)];
+						String pname = FastaParser.getGeneFromFastaHeader(description);
+						if (pname == null) {
+							// get the gene name from the first word of the
+							// description
+							if (description.contains(" ")) {
+								pname = description.split(" ")[0];
+							}
+
+						}
 						if (pname == null) {
 							pname = element[indexesByHeaders.get(PreFilterUtils.ACC)];
 						}
@@ -247,7 +254,7 @@ public class Quantitatives {
 						// } else {
 						// value = 0;
 						// }
-						if (!filterByQuantEnabled || validProteins.contains(pname)) {
+						if (validProteins.isEmpty() || validProteins.contains(pname)) {
 							dlist.get(baitindex).addValue(pname, value);
 						}
 					}
@@ -259,6 +266,7 @@ public class Quantitatives {
 			} catch (IOException e) {
 				System.err.println("unable to read file");
 			}
+			log.info(dlist.get(baitindex).getData().size() + " proteins read");
 
 		}
 

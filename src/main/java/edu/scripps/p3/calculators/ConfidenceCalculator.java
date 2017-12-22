@@ -5,8 +5,12 @@ package edu.scripps.p3.calculators;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import edu.scripps.p3.experimentallist.Interactome;
 import edu.scripps.p3.experimentallist.network.Network;
@@ -157,7 +161,25 @@ public class ConfidenceCalculator {
 						maps_names.get(k).add(expbaits[j] + "_" + interactome.getConditionName());
 
 						List<String> interactionsToRemove = new ArrayList<String>();
+						Map<String, Double> interactionMap = new HashMap<String, Double>();
+						for (String interactor : interactors) {
+							Interaction inter = bait.getInteractionByInteractorName(interactor);
 
+							i_score = getInternalScore(inter, false);
+							p_score = getPhysicalScore(inter, k, i, false);
+							g_score = getGeneticScore(inter, k, i, false);
+							score = getFinalScore(i_score, p_score, g_score, false);
+							interactionMap.put(interactor, score);
+						}
+						// sort by the composite score
+						Collections.sort(interactors, new Comparator<String>() {
+
+							@Override
+							public int compare(String o1, String o2) {
+								return Double.compare(interactionMap.get(o2), interactionMap.get(o1));
+							}
+
+						});
 						for (String interactor : interactors) {
 
 							Interaction inter = bait.getInteractionByInteractorName(interactor);
@@ -168,10 +190,10 @@ public class ConfidenceCalculator {
 
 							extras = new StringBuffer();
 
-							i_score = getInternalScore(inter);
-							p_score = getPhysicalScore(inter, k, i);
-							g_score = getGeneticScore(inter, k, i);
-							score = getFinalScore(i_score, p_score, g_score);
+							i_score = getInternalScore(inter, true);
+							p_score = getPhysicalScore(inter, k, i, true);
+							g_score = getGeneticScore(inter, k, i, true);
+							score = getFinalScore(i_score, p_score, g_score, true);
 							lys = checkLysateBehavior(inter);
 							qbeh = checkQuantBehavior(inter);
 
@@ -249,7 +271,7 @@ public class ConfidenceCalculator {
 
 	}
 
-	private double getFinalScore(double iscore, double pscore, double gscore) {
+	private double getFinalScore(double iscore, double pscore, double gscore, boolean appendToLog) {
 
 		double score;
 		// double norm=0;
@@ -278,13 +300,13 @@ public class ConfidenceCalculator {
 		 * score + 0.1; //was 0.05 } // if (gscore>0.01) { //was 0.9 // score =
 		 * score + 0.1; //was 0.05 // } if (score>1) { score = 1.0; } // } }
 		 */
-
-		row.append(score + "\t");
-
+		if (appendToLog) {
+			row.append(score + "\t");
+		}
 		return score;
 	}
 
-	private double getGeneticScore(Interaction inter, int id1, int id2) {
+	private double getGeneticScore(Interaction inter, int id1, int id2, boolean appendToLog) {
 		double score = 0;
 
 		if (inter.isGscores()) {
@@ -304,9 +326,10 @@ public class ConfidenceCalculator {
 				}
 
 				if (score > 0) {
-					extras.append(names.get(i) + " ");
+					if (appendToLog) {
+						extras.append(names.get(i) + " ");
+					}
 				}
-
 			}
 
 			score = max;
@@ -337,13 +360,14 @@ public class ConfidenceCalculator {
 			}
 
 		}
-
-		row.append(score + "\t");
-		extras.append("\t");
+		if (appendToLog) {
+			row.append(score + "\t");
+			extras.append("\t");
+		}
 		return score;
 	}
 
-	private double getPhysicalScore(Interaction inter, int id1, int id2) {
+	private double getPhysicalScore(Interaction inter, int id1, int id2, boolean appendToLog) {
 
 		double score = 0;
 
@@ -364,7 +388,9 @@ public class ConfidenceCalculator {
 				}
 
 				if (score > 0) {
-					extras.append(names.get(i) + " ");
+					if (appendToLog) {
+						extras.append(names.get(i) + " ");
+					}
 				}
 
 			}
@@ -397,13 +423,14 @@ public class ConfidenceCalculator {
 			}
 
 		}
-
-		row.append(score + "\t");
-		extras.append("\t");
+		if (appendToLog) {
+			row.append(score + "\t");
+			extras.append("\t");
+		}
 		return score;
 	}
 
-	private double getInternalScore(Interaction inter) {
+	private double getInternalScore(Interaction inter, boolean appendToLog) {
 
 		double corr_s = inter.getCorrelation_score();
 		double clu_s = inter.getCluster_score();
@@ -413,9 +440,9 @@ public class ConfidenceCalculator {
 
 		double score = corr * corr_s + clus * clu_s + quant * qua_s;
 		// score = score / norm;
-
-		row.append(score + "\t" + corr_s + "\t" + clu_s + "\t" + qua_s + "\t");
-
+		if (appendToLog) {
+			row.append(score + "\t" + corr_s + "\t" + clu_s + "\t" + qua_s + "\t");
+		}
 		return score;
 	}
 

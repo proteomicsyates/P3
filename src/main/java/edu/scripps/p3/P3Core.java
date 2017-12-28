@@ -6,6 +6,8 @@ package edu.scripps.p3;
 import java.io.File;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import edu.scripps.p3.calculators.ConfidenceCalculator;
 import edu.scripps.p3.cluterer.ConfidenceCluster;
 import edu.scripps.p3.cluterer.utilities.FeaturesCalculator;
@@ -35,7 +37,7 @@ import edu.scripps.yates.utilities.dates.DatesUtil;
  * @version 1.0
  */
 public class P3Core {
-
+	private final static Logger log = Logger.getLogger(P3Core.class);
 	private final String[] baits;
 
 	private final List<Experiment> elist; // input file data
@@ -119,7 +121,7 @@ public class P3Core {
 		// CORRELATION
 		// --> calculate trend between protein
 		if (debug) {
-			System.out.print("ComplexCorrelator:\t");
+			log.info("ComplexCorrelator:\t");
 			start = System.currentTimeMillis();
 		}
 		ComplexCorrelator cc = new ComplexCorrelator(elist, logdir, configuration.isRapidCorrelation(),
@@ -135,7 +137,7 @@ public class P3Core {
 
 		// --> calculating complexes based on frequencies
 		if (debug) {
-			System.out.print("ComplexFilter:\t");
+			log.info("ComplexFilter:\t");
 			start = System.currentTimeMillis();
 		}
 		ComplexFilter cf = new ComplexFilter(complex_list, logdir);
@@ -165,7 +167,7 @@ public class P3Core {
 		// CLUSTER
 		// --> features calculator
 		if (debug) {
-			System.out.print("FeaturesCalculator:\t");
+			log.info("FeaturesCalculator:\t");
 			start = System.currentTimeMillis();
 		}
 
@@ -181,7 +183,7 @@ public class P3Core {
 
 		// --> cluster
 		if (debug) {
-			System.out.print("ConfidenceCluster:\t");
+			log.info("ConfidenceCluster:\t");
 			start = System.currentTimeMillis();
 		}
 		ConfidenceCluster ccl = new ConfidenceCluster(interactomes, logdir);
@@ -198,7 +200,7 @@ public class P3Core {
 
 		// --> stratify values
 		// if (debug) {
-		// System.out.print("StratifyCluster:\t");
+		// log.info("StratifyCluster:\t");
 		// start = System.currentTimeMillis();
 		// }
 		// StratifyCluster sc = new StratifyCluster(interactomes, baits);
@@ -219,7 +221,7 @@ public class P3Core {
 		// --> quantitative trends
 		if (quantitative) {
 			if (debug) {
-				System.out.print("QuantTrendFinder:\t");
+				log.info("QuantTrendFinder:\t");
 				start = System.currentTimeMillis();
 			}
 			QuantTrendFinder qtf = new QuantTrendFinder(qlist, interactomes, logdir);
@@ -243,7 +245,7 @@ public class P3Core {
 		if (physical || genetic) {
 
 			if (debug) {
-				System.out.print("OrthogonalInserter:\t");
+				log.info("OrthogonalInserter:\t");
 				start = System.currentTimeMillis();
 			}
 			OrthogonalInserter oi = new OrthogonalInserter(interactomes, olist);
@@ -263,7 +265,7 @@ public class P3Core {
 		if (lysate) {
 
 			if (debug) {
-				System.out.print("LysateTrendFinder:\t");
+				log.info("LysateTrendFinder:\t");
 				start = System.currentTimeMillis();
 			}
 			LysateTrendFinder ltf = new LysateTrendFinder(qlist, llist, interactomes);
@@ -283,7 +285,7 @@ public class P3Core {
 		// CONFIDENCE SCORE
 		// --> calculate scores
 		if (debug) {
-			System.out.print("ConfidenceCalculator:\t");
+			log.info("ConfidenceCalculator:\t");
 			start = System.currentTimeMillis();
 		}
 		ConfidenceCalculator ccal = new ConfidenceCalculator(interactomes, baits, logdir);
@@ -313,7 +315,7 @@ public class P3Core {
 		IndirectTopologyCalculator itc = null;
 		if (indirect) {
 			if (debug) {
-				System.out.print("IndirectTopologyCalculator:\t");
+				log.info("IndirectTopologyCalculator:\t");
 				start = System.currentTimeMillis();
 			}
 			itc = new IndirectTopologyCalculator(interactomes, baits, ccal.getMaps(), ccal.getMaps_names());
@@ -326,7 +328,7 @@ public class P3Core {
 
 		// --> maps creator
 		if (debug) {
-			System.out.print("TopologyCreator:\t");
+			log.info("TopologyCreator:\t");
 			start = System.currentTimeMillis();
 		}
 
@@ -343,7 +345,7 @@ public class P3Core {
 		tc.run();
 		if (debug) {
 			end = System.currentTimeMillis();
-			System.out.println("Done in " + DatesUtil.getDescriptiveTimeFromMillisecs(end - start));
+			log.info("Done in " + DatesUtil.getDescriptiveTimeFromMillisecs(end - start));
 		}
 		// ------------------------------------------------------------------------------------
 

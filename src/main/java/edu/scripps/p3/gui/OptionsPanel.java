@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -508,7 +509,16 @@ public class OptionsPanel extends JPanel {
 
 		if (inputlist != null) {
 
-			orthogonalfilelist = inputlist.list();
+			orthogonalfilelist = inputlist.list(new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					if (name.startsWith("BIOGRID") && name.endsWith("txt")) {
+						return true;
+					}
+					return false;
+				}
+			});
 			orthogonaldir = inputlist;
 			external = true;
 			for (int i = 0; i < orthogonalfilelist.length; i++) {

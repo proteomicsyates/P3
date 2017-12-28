@@ -16,10 +16,13 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JFileChooser;
 
 import org.apache.commons.io.FilenameUtils;
+
+import edu.scripps.p3.prefilter.PreFilterUtils;
 
 /**
  * create the biogrid physical and gentic from the downloaded biogrid file
@@ -27,23 +30,32 @@ import org.apache.commons.io.FilenameUtils;
  * @author diego
  *
  */
-public class Bioparser {
+public class BioGRIDparser {
 
+	private static final String EXPERIMENTAL_SYSTEM_TYPE = "Experimental System Type";
+	private static final String OFFICIAL_SYMBOL_INTERACTOR_A = "Official Symbol Interactor A";
+	private static final String OFFICIAL_SYMBOL_INTERACTOR_B = "Official Symbol Interactor B";
+	private static final String PHYSICAL = "physical";
+	private static final String AFFINITY_CAPTURE_MS = "Affinity Capture-MS";
+	private static final String AFFINITY_CAPTURE_Western = "Affinity Capture-Western";
+	private static final String EXPERIMENTAL_SYSTEM = "Experimental System";
+	private static final String AUTHOR = "Author";
+	private static final String THROUGHPUT = "Throughput";
 	Hashtable<String, interaction> ilist;
 
 	public void run() {
-
+		boolean onlyAffinityCapture = false;
 		System.out.println("hello");
 		File f = openFile();
 		System.out.println("hello0.5");
 		File out = chooseOutDir();
 		System.out.println("hello1");
-		run2(f, out, "physical");
-		run2(f, out, "genetic");
+		run2(f, out, "physical", onlyAffinityCapture);
+		run2(f, out, "genetic", onlyAffinityCapture);
 
 	}
 
-	public void run2(File f, File out, String filter) {
+	public void run2(File f, File out, String filter, boolean onlyAffinityCapture) {
 
 		ilist = new Hashtable<String, interaction>();
 		List<String> keys = new ArrayList<String>();
@@ -62,7 +74,7 @@ public class Bioparser {
 			fis = new FileInputStream(f);
 			BufferedInputStream bis = new BufferedInputStream(fis);
 			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
-
+			Map<String, Integer> indexesByHeaders = null;
 			String line = null;
 			System.out.println("hello3");
 			while ((line = dis.readLine()) != null) {
@@ -70,35 +82,48 @@ public class Bioparser {
 				if (!line.startsWith("#")) {
 					String[] dline = line.split("\t");
 
-					if (dline[12].equals(filter)) {// "physical")) {
-
-						String key1 = dline[7] + "_" + dline[8];
-						String key2 = dline[8] + "_" + dline[7];
-						System.out.println(dline[7]);
-						if (dline[12].equals("physical")) {
-							if (!system_phy.containsKey(dline[11])) {
-								system_phy.put(dline[11], dline[11]);
+					final Integer experimentalSystemTypeIndex = indexesByHeaders.get(EXPERIMENTAL_SYSTEM_TYPE);
+					final String experimentalSystemType = dline[experimentalSystemTypeIndex];
+					if (experimentalSystemType.equals(filter)) {// "physical"))
+																// {
+						final String experimentalSystem = dline[indexesByHeaders.get(EXPERIMENTAL_SYSTEM)];
+						if (onlyAffinityCapture) {
+							if (!experimentalSystem.equals(AFFINITY_CAPTURE_MS)
+									&& !experimentalSystem.equals(AFFINITY_CAPTURE_Western)) {
+								continue;
+							}
+						}
+						final String interactorA = dline[indexesByHeaders.get(OFFICIAL_SYMBOL_INTERACTOR_A)];
+						final String interactorB = dline[indexesByHeaders.get(OFFICIAL_SYMBOL_INTERACTOR_B)];
+						String key1 = interactorA + "_" + interactorB;
+						String key2 = interactorB + "_" + interactorA;
+						System.out.println(interactorA);
+						if (experimentalSystemType.equals(PHYSICAL)) {
+							if (!system_phy.containsKey(experimentalSystem)) {
+								system_phy.put(experimentalSystem, experimentalSystem);
 							}
 						} else {
-							if (!system_gen.containsKey(dline[11])) {
-								system_gen.put(dline[11], dline[11]);
+							if (!system_gen.containsKey(experimentalSystem)) {
+								system_gen.put(experimentalSystem, experimentalSystem);
 							}
 						}
 
-						if (!type.containsKey(dline[12])) {
-							type.put(dline[12], dline[12]);
+						if (!type.containsKey(experimentalSystemType)) {
+							type.put(experimentalSystemType, experimentalSystemType);
 						}
-						if (!tgh.containsKey(dline[17])) {
-							tgh.put(dline[17], dline[17]);
+						final String throughput = dline[indexesByHeaders.get(THROUGHPUT)];
+						if (!tgh.containsKey(throughput)) {
+							tgh.put(throughput, throughput);
 						}
 
+						final String author = dline[indexesByHeaders.get(AUTHOR)];
 						if (!ilist.containsKey(key1) && !ilist.containsKey(key2)) {
 
-							interaction it = new interaction(dline[7], dline[8]);
-							it.addExpSystem(dline[11]);
-							it.addExpType(dline[12]);
-							it.addExpstudy(dline[13]);
-							it.addExpThroughput(dline[17]);
+							interaction it = new interaction(interactorA, interactorB);
+							it.addExpSystem(experimentalSystem);
+							it.addExpType(experimentalSystemType);
+							it.addExpstudy(author);
+							it.addExpThroughput(throughput);
 							ilist.put(key1, it);
 							keys.add(key1);
 
@@ -106,17 +131,17 @@ public class Bioparser {
 
 							if (ilist.containsKey(key1)) {
 								interaction it = ilist.get(key1);
-								it.addExpSystem(dline[11]);
-								it.addExpType(dline[12]);
-								it.addExpstudy(dline[13]);
-								it.addExpThroughput(dline[17]);
+								it.addExpSystem(experimentalSystem);
+								it.addExpType(experimentalSystemType);
+								it.addExpstudy(author);
+								it.addExpThroughput(throughput);
 								ilist.put(key1, it);
 							} else {
 								interaction it = ilist.get(key2);
-								it.addExpSystem(dline[11]);
-								it.addExpType(dline[12]);
-								it.addExpstudy(dline[13]);
-								it.addExpThroughput(dline[17]);
+								it.addExpSystem(experimentalSystem);
+								it.addExpType(experimentalSystemType);
+								it.addExpstudy(author);
+								it.addExpThroughput(throughput);
 								ilist.put(key2, it);
 							}
 
@@ -146,6 +171,10 @@ public class Bioparser {
 						 */
 					}
 
+				} else {
+					if (line.startsWith("#BioGRID Interaction ID")) {
+						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(line);
+					}
 				}
 
 			}
@@ -222,7 +251,7 @@ public class Bioparser {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Bioparser bp = new Bioparser();
+		BioGRIDparser bp = new BioGRIDparser();
 		bp.run();
 
 	}

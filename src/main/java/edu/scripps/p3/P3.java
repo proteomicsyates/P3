@@ -34,7 +34,7 @@ public class P3 {
 	public static final String baitFile = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\bait - pool.txt";
 	public static final String orthogonalFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\orthogonal\\new";
 	public static final String lysateFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\quant_lysate";
-	public static final String outputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\output_"
+	public static final String outputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\output\\output_"
 			+ formatedDate;
 	public static final String inputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\DTASelects";
 	public static final String fastaFile = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\fasta\\SGD_S-cerevisiae_current_10_2010_01-05-2010_reversed.fasta";

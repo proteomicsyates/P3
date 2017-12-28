@@ -96,7 +96,7 @@ public class interaction {
 		 */
 		for (int i = 0; i < expsystem.size(); i++) {
 
-			if (expsystem.get(i).equals("Affinity Capture-MS")) {
+			if (expsystem.get(i).equals("Affinity Capture-MS") || expsystem.get(i).equals("Affinity Capture-Western")) {
 				score = score * 0.7;
 			} else {
 				score = score * 0.9;

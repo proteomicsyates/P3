@@ -48,6 +48,7 @@ public class StringOntoGetter {
 	private final static String baitsFile = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\bait.txt";
 	private final static String inputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\DTASelects";
 	private final static String outputFolder = "Z:\\share\\Salva\\data\\Ben's CRISPR AMPK\\yeast dataset\\orthogonal\\new";
+	private static final int requiredScore = 400; /// = 0.4
 
 	private static final boolean test = true;
 
@@ -172,8 +173,8 @@ public class StringOntoGetter {
 			sb.append(prey);
 
 		}
-		String urlStr = "http://string-db.org/api/psi-mi-tab/interaction_partners?identifiers=" + sb.toString()
-				+ "&species=" + specie + "&required_score=0&caller_identity=YatesLab";
+		String urlStr = "http://string-db.org/api/psi-mi-tab/network?identifiers=" + sb.toString() + "&species="
+				+ specie + "&required_score=" + requiredScore + "&caller_identity=YatesLab";
 		try {
 			System.out.println(urlStr);
 			long t1 = System.currentTimeMillis();

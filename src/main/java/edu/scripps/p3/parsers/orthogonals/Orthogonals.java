@@ -268,7 +268,7 @@ public class Orthogonals {
 			int typeSelectedIndex;
 			int confidenceSelectedIndex;
 			String text;
-			double value;
+			double value = 0;
 
 			for (int i = 0; i < coeffs.size(); i++) {
 
@@ -293,18 +293,21 @@ public class Orthogonals {
 
 					switch (confidenceSelectedIndex) {
 					case 0:
+						value = 0.1;
 						coefficients.set(i, 0.1);
 						break;
 					case 1:
+						value = 0.5;
 						coefficients.set(i, 0.5);
 						break;
 					case 2:
+						value = 0.9;
 						coefficients.set(i, 0.9);
 						break;
 					}
 
 				}
-
+				coeffs.get(i).setText(String.valueOf(value));
 			}
 
 		}
@@ -315,7 +318,7 @@ public class Orthogonals {
 			int index;
 			int index2;
 			String text;
-			double value;
+			double value = 0;
 
 			for (int i = 0; i < coeffs.size(); i++) {
 
@@ -342,17 +345,21 @@ public class Orthogonals {
 
 					switch (index2) {
 					case 0:
+						value = 0.1;
 						coefficients.set(i, 0.1);
 						break;
 					case 1:
+						value = 0.5;
 						coefficients.set(i, 0.5);
 						break;
 					case 2:
+						value = 0.9;
 						coefficients.set(i, 0.9);
 						break;
 					}
 
 				}
+				coeffs.get(i).setText(String.valueOf(value));
 
 			}
 

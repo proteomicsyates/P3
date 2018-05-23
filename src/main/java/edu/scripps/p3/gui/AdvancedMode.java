@@ -31,7 +31,7 @@ import edu.scripps.p3.parsers.inputs.utilities.Configuration;
  *
  */
 public class AdvancedMode {
-	public static final Double CORRT = 0.1;
+	public static final Double CORRT = 0.01;
 	public static final Double QUANTT = 2.0;
 	public static final Double CORR = 0.2;
 	public static final Double CLUS = 0.7;

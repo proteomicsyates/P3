@@ -3,7 +3,6 @@ package edu.scripps.p3.parsers.inputs.utilities;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -17,6 +16,7 @@ import com.compomics.util.protein.Protein;
 import edu.scripps.p3.util.P3Constants;
 import edu.scripps.yates.utilities.fasta.FastaParser;
 import edu.scripps.yates.utilities.strings.StringUtils;
+import gnu.trove.list.array.TIntArrayList;
 
 public class NewPeptideCutter {
 	private final Logger log = Logger.getLogger(NewPeptideCutter.class);
@@ -42,19 +42,19 @@ public class NewPeptideCutter {
 	public void run() {
 
 		try {
-			DBLoader loader = DBLoaderLoader.loadDB(fastaFile);
-			Enzyme e = EnzymeLoader.loadEnzyme(enzymeName, String.valueOf(missedCleavages));
+			final DBLoader loader = DBLoaderLoader.loadDB(fastaFile);
+			final Enzyme e = EnzymeLoader.loadEnzyme(enzymeName, String.valueOf(missedCleavages));
 			Protein protein;
 			while ((protein = loader.nextProtein()) != null) {
 				final String proteinSequence = protein.getSequence().getSequence();
-				char[] sequenceCoverage = new char[proteinSequence.length()];
+				final char[] sequenceCoverage = new char[proteinSequence.length()];
 				final long originalLength = protein.getLength();
 				final Protein[] peps = e.cleave(protein, P3Constants.MIN_PEP_LENGTH, 80);
-				int i = 0;
-				for (Protein peptide : peps) {
-					final List<Integer> allPositions = StringUtils.allPositionsOf(proteinSequence,
+				final int i = 0;
+				for (final Protein peptide : peps) {
+					final TIntArrayList allPositions = StringUtils.allPositionsOf(proteinSequence,
 							peptide.getSequence().getSequence());
-					for (Integer position : allPositions) {
+					for (final int position : allPositions.toArray()) {
 						int index = position - 1;
 						int lenth = 0;
 						while (lenth < peptide.getSequence().getLength()) {
@@ -72,7 +72,7 @@ public class NewPeptideCutter {
 				}
 				String geneName = FastaParser.getGeneFromFastaHeader(protein.getHeader().getRawHeader());
 				if (geneName == null) {
-					String acc = FastaParser.getACC(protein.getHeader().getAccession()).getFirstelement();
+					final String acc = FastaParser.getACC(protein.getHeader().getAccession()).getFirstelement();
 					geneName = acc;
 				}
 				final Double efectiveCoverage = maxSequence * 100.0 / originalLength;
@@ -86,7 +86,7 @@ public class NewPeptideCutter {
 				maxCoverages.put(geneName, efectiveCoverage);
 			}
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			throw new IllegalAccessError(e.getMessage());
 		}

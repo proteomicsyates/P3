@@ -26,6 +26,10 @@ public class Configuration {
 	private boolean quantFeatures;
 	private double spcCorrelationT;
 
+	public Configuration() {
+		defaultState();
+	}
+
 	public void defaultState() {
 		setValid(true);
 		setCorrelationT(AdvancedMode.CORRT);// 0.01);

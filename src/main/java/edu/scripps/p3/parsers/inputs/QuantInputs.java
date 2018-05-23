@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -17,6 +18,7 @@ import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.parsers.inputs.utilities.ApvCalculator;
 import edu.scripps.p3.parsers.inputs.utilities.NewCoverageFixer;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
+import edu.scripps.p3.prefilter.PreFilterUtils;
 
 public class QuantInputs extends Inputs {
 	private final static Logger log = Logger.getLogger(QuantInputs.class);
@@ -52,6 +54,7 @@ public class QuantInputs extends Inputs {
 		for (int i = 0; i < files.length; i++) {
 
 			f = new File(inputdir, files[i]);
+			log.info("Reading quant input file " + f.getAbsolutePath());
 
 			baitindex = assignments.get(i)[0];
 			expindex = assignments.get(i)[1];
@@ -63,7 +66,7 @@ public class QuantInputs extends Inputs {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
-
+				Map<String, Integer> indexesByHeaders = null;
 				String dataline;
 				boolean dataStarts = false;
 				while ((dataline = dis.readLine()) != null) {
@@ -71,13 +74,16 @@ public class QuantInputs extends Inputs {
 						dataStarts = true;
 						continue;
 					}
+					if (dataline.startsWith("Locus")) {
+						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(dataline);
+					}
 					if (dataStarts && dataline.contains("\t") && "Proteins".equals(dataline.split("\t")[1])) {
 						break;
 					}
 					if (dataStarts && dataline.contains("\t") && !"".equals(dataline.split("\t")[0])
 							&& !"*".equals(dataline.split("\t")[0])) {
 
-						Protein p = getProtein(dataline);
+						Protein p = getProtein(dataline, indexesByHeaders);
 						numTotalProteins++;
 						final String gene = p.getName();
 						if (gene.length() > 1) {
@@ -101,7 +107,8 @@ public class QuantInputs extends Inputs {
 					}
 
 				}
-
+				log.info(elist.get(baitindex).getCondition(expindex).getNumberOfProteins()
+						+ " proteins readed for bait " + baitindex + " condition " + expindex);
 			} catch (FileNotFoundException e) {
 				System.err.println("file not found");
 			} catch (IOException e) {

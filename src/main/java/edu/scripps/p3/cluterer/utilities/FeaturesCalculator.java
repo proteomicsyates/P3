@@ -62,8 +62,9 @@ public class FeaturesCalculator {
 		int size = 0;
 
 		for (int k = 0; k < interactomes.size(); k++) {
-			for (int i = 0; i < interactomes.get(k).size(); i++) {
-				final Interactome interactome = interactomes.get(k).get(i);
+			List<Interactome> list = interactomes.get(k);
+			for (int i = 0; i < list.size(); i++) {
+				final Interactome interactome = list.get(i);
 				size += interactome.getProteinsHavingANetwork().size();
 			}
 		}

@@ -49,7 +49,7 @@ public class Lysates extends Quantitatives {
 
 		File f;
 		int baitindex;
-		Median median = new Median();
+		final Median median = new Median();
 
 		for (int i = 0; i < files.length; i++) {
 
@@ -62,24 +62,25 @@ public class Lysates extends Quantitatives {
 
 			try {
 				fis = new FileInputStream(f);
-				BufferedInputStream bis = new BufferedInputStream(fis);
-				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+				final BufferedInputStream bis = new BufferedInputStream(fis);
+				final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 				Map<String, Integer> indexesByHeaders = null;
 				Map<Integer, Integer> ratioIndexesByReplicate = null;
 				String dataline;
-				boolean dataStarts = false;
+				final boolean dataStarts = false;
 				while ((dataline = dis.readLine()) != null) {
 					if (dataline.startsWith("PLINE")) {
 						// header
 						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(dataline);
-						ratioIndexesByReplicate = PreFilterUtils.getRatioIndexesByReplicate(dataline);
+						ratioIndexesByReplicate = PreFilterUtils.getRatioIndexesByReplicate(dataline,
+								PreFilterUtils.area_ratio_x_regexp);
 					}
 					if (dataline.startsWith("P\t")) {
 
-						String[] elements = dataline.split("\t");
-						for (Integer index : ratioIndexesByReplicate.values()) {
-							String ratioForReplicateString = elements[index];
-							List<Double> peptideRatios = new ArrayList<Double>();
+						final String[] elements = dataline.split("\t");
+						for (final Integer index : ratioIndexesByReplicate.values()) {
+							final String ratioForReplicateString = elements[index];
+							final List<Double> peptideRatios = new ArrayList<Double>();
 							String[] split = null;
 							if (ratioForReplicateString.contains(",")) {
 								split = ratioForReplicateString.split(",");
@@ -87,21 +88,21 @@ public class Lysates extends Quantitatives {
 								split = new String[1];
 								split[0] = ratioForReplicateString;
 							}
-							for (String individualRatioString : split) {
+							for (final String individualRatioString : split) {
 								try {
 									final Double ratioValue = Double.valueOf(individualRatioString);
 									peptideRatios.add(ratioValue);
-								} catch (NumberFormatException e) {
+								} catch (final NumberFormatException e) {
 
 								}
 							}
-							double[] ratioArray = new double[peptideRatios.size()];
+							final double[] ratioArray = new double[peptideRatios.size()];
 							int index2 = 0;
-							for (double d : peptideRatios) {
+							for (final double d : peptideRatios) {
 								ratioArray[index2++] = d;
 							}
 							// make the median
-							double value = median.evaluate(ratioArray);
+							final double value = median.evaluate(ratioArray);
 							final String description = elements[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)];
 
 							String pname = FastaParser.getGeneFromFastaHeader(description);
@@ -124,9 +125,9 @@ public class Lysates extends Quantitatives {
 
 				}
 
-			} catch (FileNotFoundException e) {
+			} catch (final FileNotFoundException e) {
 				System.err.println("file not found");
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				System.err.println("unable to read file");
 			}
 			log.info(dlist.get(baitindex).getData().size() + " proteins read");

@@ -513,7 +513,8 @@ public class OptionsPanel extends JPanel {
 
 				@Override
 				public boolean accept(File dir, String name) {
-					if (name.startsWith("BIOGRID") && name.endsWith("txt")) {
+					if (// name.startsWith("BIOGRID") &&
+					name.endsWith("txt")) {
 						return true;
 					}
 					return false;

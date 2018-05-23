@@ -20,20 +20,20 @@ public class PreFilterExecutor {
 	}
 
 	public static void main(String[] args) {
-		File controlAFile = getFileFromArgument(args[0]);
+		final File controlAFile = getFileFromArgument(args[0]);
 
-		File controlBFile = getFileFromArgument(args[1]);
+		final File controlBFile = getFileFromArgument(args[1]);
 
-		File realAOverB = getFileFromArgument(args[2]);
-		double pValueThreshold = Double.valueOf(args[3]);
-		double avgRatioThreshold = Double.valueOf(args[4]);
-		PreFilterExecutor executor = new PreFilterExecutor(controlAFile, controlBFile, realAOverB, pValueThreshold,
-				avgRatioThreshold);
+		final File realAOverB = getFileFromArgument(args[2]);
+		final double pValueThreshold = Double.valueOf(args[3]);
+		final double avgRatioThreshold = Double.valueOf(args[4]);
+		final PreFilterExecutor executor = new PreFilterExecutor(controlAFile, controlBFile, realAOverB,
+				pValueThreshold, avgRatioThreshold);
 		File run;
 		try {
 			run = executor.run();
 			System.out.println("Final file created at: " + run.getAbsolutePath());
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -41,7 +41,7 @@ public class PreFilterExecutor {
 	}
 
 	private static File getFileFromArgument(String argument) {
-		File file = new File(argument);
+		final File file = new File(argument);
 		if (file.getParentFile() == null) {
 			return new File(System.getProperty("user.dir") + File.separator + argument);
 		} else {
@@ -50,10 +50,10 @@ public class PreFilterExecutor {
 	}
 
 	public File run() throws IOException {
-		final FilterMockExperiment filterMockExperiment1 = new FilterMockExperiment(controlAFile, controlBFile,
-				pValueThreshold, avgRatioThreshold);
-		final FilterMockExperiment filterMockExperiment2 = new FilterMockExperiment(controlBFile, controlAFile,
-				pValueThreshold, avgRatioThreshold);
+		final FilterMockExperiment filterMockExperiment1 = new FilterMockExperiment(controlAFile, true, controlBFile,
+				false, pValueThreshold, avgRatioThreshold);
+		final FilterMockExperiment filterMockExperiment2 = new FilterMockExperiment(controlBFile, false, controlAFile,
+				true, pValueThreshold, avgRatioThreshold);
 		final FilterRealExperiment filterRealExperiment = new FilterRealExperiment(realAoverB, pValueThreshold);
 
 		final RemoveNonSpecificInteractors removeNonSpecificInteractors = new RemoveNonSpecificInteractors(

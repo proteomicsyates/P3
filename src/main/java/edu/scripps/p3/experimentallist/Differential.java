@@ -10,16 +10,6 @@ public class Differential {
 	Hashtable<String, Double> data;
 	String name;
 
-	/**
-	 * @param data
-	 * @param name
-	 */
-	public Differential(Hashtable<String, Double> data, String name) {
-		super();
-		this.data = data;
-		this.name = name;
-	}
-
 	public Differential(String name) {
 		this.name = name;
 		data = new Hashtable<String, Double>();

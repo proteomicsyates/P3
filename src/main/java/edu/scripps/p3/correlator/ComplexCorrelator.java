@@ -71,7 +71,7 @@ public class ComplexCorrelator {
 
 				final Condition condition = experiment.getCondition(conditionID);
 				log.append("Working on " + experiment.getName() + "_" + condition.getName() + "\n");
-
+				log.append("SPC Correlation threshold for R^2=" + this.rSquaredThreshold);
 				initializeMatrix(condition.getNumberOfProteins());
 
 				fillMatrix(baitID, conditionID);

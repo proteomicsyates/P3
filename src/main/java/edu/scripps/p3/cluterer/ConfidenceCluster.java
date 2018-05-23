@@ -82,7 +82,8 @@ public class ConfidenceCluster {
 
 					if (interactors.size() > 2) {
 						for (int q = 0; q < iterations; q++) {
-
+							// presencelist counts how many times a protein
+							// appears in the cluster created by kmeans
 							if (q == 0) {
 								presencelist = new Hashtable<String, Integer>();
 							}
@@ -91,6 +92,7 @@ public class ConfidenceCluster {
 							kmean.setBait(net.getBait());
 							kmean.run();
 							List<String> clust = kmean.getClusters();
+							// update presencelist
 							setStatistics(clust);
 
 						}
@@ -176,13 +178,14 @@ public class ConfidenceCluster {
 
 		for (int i = 0; i < clust.size(); i++) {
 
-			if (presencelist.containsKey(clust.get(i))) {
-				int presence = presencelist.get(clust.get(i));
+			String protein = clust.get(i);
+			if (presencelist.containsKey(protein)) {
+				int presence = presencelist.get(protein);
 				presence++;
-				presencelist.put(clust.get(i), presence);
+				presencelist.put(protein, presence);
 			} else {
 				int presence = 1;
-				presencelist.put(clust.get(i), presence);
+				presencelist.put(protein, presence);
 			}
 
 		}

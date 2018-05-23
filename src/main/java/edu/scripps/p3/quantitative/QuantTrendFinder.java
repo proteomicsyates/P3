@@ -82,23 +82,23 @@ public class QuantTrendFinder {
 		progress = 0;
 		progressMonitor.setProgress(progress);
 
-		for (int k = 0; k < qlist.size(); k++) {
+		for (int baitIndex = 0; baitIndex < qlist.size(); baitIndex++) {
 
-			initializeMatrix(qlist.get(k).getQlist().size());
+			initializeMatrix(qlist.get(baitIndex).getQlist().size());
 
-			for (int i = 0; i < qlist.get(k).getQlist().size(); i++) {
+			for (int i = 0; i < qlist.get(baitIndex).getQlist().size(); i++) {
 
-				fillMatrix(i, k);
+				fillMatrix(i, baitIndex);
 
 			}
 
-			getTrends(k);
+			getTrends(baitIndex);
 
-			qlog.append("Condition " + k + "\n");
+			qlog.append("Condition " + baitIndex + "\n");
 
-			for (String qname : qlist.get(k).getQlist()) {
+			for (String qname : qlist.get(baitIndex).getQlist()) {
 
-				qlog.append(qname + "\t" + qlist.get(k).getDiffValue(qname) + "\n");
+				qlog.append(qname + "\t" + qlist.get(baitIndex).getDiffValue(qname) + "\n");
 
 			}
 
@@ -117,49 +117,55 @@ public class QuantTrendFinder {
 
 		double val;
 
-		String bait, prey;
+		String protein1, protein2;
 
-		for (int i = 0; i < qlist.get(bait_id).getQlist().size(); i++) {
+		Differential differential = qlist.get(bait_id);
+		for (int i = 0; i < differential.getQlist().size(); i++) {
 
-			bait = qlist.get(bait_id).getQlist().get(i);
+			protein1 = differential.getQlist().get(i);
 
-			progressMonitor.setNote("Working on " + bait);
+			progressMonitor.setNote("Working on " + protein1);
 
-			for (int j = 0; j < qlist.get(bait_id).getQlist().size(); j++) {
+			for (int j = 0; j < differential.getQlist().size(); j++) {
 
-				prey = qlist.get(bait_id).getQlist().get(j);
+				protein2 = differential.getQlist().get(j);
 
 				val = matrix.get(i).get(j);
 				val = Math.pow(val, tlevel);
 
-				final String baitPreyKey = bait + "_" + prey;
+				final String proteinPairKey = protein1 + "_" + protein2;
 				if (val > 0.1) {
-					log.append(baitPreyKey + "\t" + val + "\n");
+
 					for (Interactome interactome : interactomes.get(bait_id)) {
 
-						if (interactome.isNetworkinSystem(bait)) {
+						if (interactome.isNetworkinSystem(protein1)) {
+							log.append(proteinPairKey + "\t" + val + "\n");
+							if (protein2.equals("PRP43")) {
+								System.out.println("ASDF");
+							}
+							Network net = interactome.getNetwork(protein1);
 
-							Network net = interactome.getNetwork(bait);
+							if (net.getInteractorsNames().contains(protein2)) {
 
-							if (net.getInteractorsNames().contains(prey)) {
-
-								Interaction inter = net.getInteractionByInteractorName(prey);
+								Interaction inter = net.getInteractionByInteractorName(protein2);
 								inter.setQuant_score(val);
 							} else {
 
-								Interaction inter = new Interaction(prey);
+								Interaction inter = new Interaction(protein2);
 								inter.setQuant_score(val);
-								net.addInteraction(prey, inter);
+								net.addInteraction(protein2, inter);
 
 							}
 
+						} else {
+							log.append(proteinPairKey + "\t" + val + "\tno with bait\n");
 						}
 
 					}
 
 				} else {
 
-					log.append(baitPreyKey + "\t" + val + "\tdiscarded\n");
+					log.append(proteinPairKey + "\t" + val + "\tdiscarded\n");
 					//
 				}
 			}
@@ -180,16 +186,17 @@ public class QuantTrendFinder {
 
 		List<Double> column = new ArrayList<Double>();
 
-		v1 = getValues(id, bait_id);
+		v1 = getProteinRatio(id, bait_id);
 
 		// System.out.println(qlist.get(bait_id).getQlist().get(id) + "\t" +
 		// v1);
 
 		for (int j = 0; j < size; j++) {
 
-			v2 = getValues(j, bait_id);
+			v2 = getProteinRatio(j, bait_id);
 
-			column.add(getDistance(v1, v2));
+			double proteinRatioDistance = getProteinRatioDistance(v1, v2);
+			column.add(proteinRatioDistance);
 
 		}
 
@@ -203,7 +210,7 @@ public class QuantTrendFinder {
 
 	}
 
-	private double getDistance(double v1, double v2) {
+	private double getProteinRatioDistance(double v1, double v2) {
 
 		double distance = 0;
 		double ratio = 1;
@@ -232,11 +239,11 @@ public class QuantTrendFinder {
 		return distance;
 	}
 
-	private double getValues(int id, int bait_id) {
+	private double getProteinRatio(int proteinIndex, int bait_id) {
 
-		String key = qlist.get(bait_id).getQlist().get(id);
+		String proteinKey = qlist.get(bait_id).getQlist().get(proteinIndex);
 
-		double val = qlist.get(bait_id).getData().get(key);
+		double val = qlist.get(bait_id).getData().get(proteinKey);
 
 		return val;
 	}

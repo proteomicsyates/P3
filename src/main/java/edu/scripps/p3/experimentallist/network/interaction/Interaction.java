@@ -123,7 +123,7 @@ public class Interaction {
 	 *            the correlation_score to set
 	 */
 	public void setCorrelation_score(double correlation_score) {
-		if (this.getName().contains("REG1")) {
+		if (this.getName().contains("ACC1")) {
 			log.info(correlation_score);
 		}
 		this.correlation_score = correlation_score;

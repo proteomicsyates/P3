@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.log4j.Logger;
@@ -96,9 +97,9 @@ public class Quantitatives {
 		setTitle();
 
 		frame = new JFrame(title);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		ip = new InputPanel();
@@ -106,7 +107,7 @@ public class Quantitatives {
 		panel.add(ip);
 		panel.add(new JSeparator(SwingConstants.HORIZONTAL));
 
-		JButton process = new JButton("Done");
+		final JButton process = new JButton("Done");
 		process.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -114,7 +115,7 @@ public class Quantitatives {
 				frame.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 				try {
 					parseFiles();
-				} catch (IOException e1) {
+				} catch (final IOException e1) {
 					e1.printStackTrace();
 				}
 				frame.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
@@ -128,9 +129,9 @@ public class Quantitatives {
 		// Display the window.
 		frame.pack();
 
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		int frame_w = frame.getSize().width;
-		int frame_h = frame.getSize().height;
+		final Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		final int frame_w = frame.getSize().width;
+		final int frame_h = frame.getSize().height;
 		frame.setLocation((dim.width - frame_w) / 2, (dim.height - frame_h) / 2);
 
 		frame.setVisible(true);
@@ -138,8 +139,8 @@ public class Quantitatives {
 	}
 
 	private JComboBox<String> getBox(String[] elements) {
-		JComboBox<String> box = new JComboBox<String>();
-		for (String element : elements) {
+		final JComboBox<String> box = new JComboBox<String>();
+		for (final String element : elements) {
 			box.addItem(element);
 		}
 		box.setSelectedIndex(0);
@@ -150,7 +151,7 @@ public class Quantitatives {
 		log.info("Parsing quant files...");
 		final Set<String> validProteins = new HashSet<String>();
 		// read the file from mathieu, ending by _Sig_WithoutNonSpecific
-		for (String fileName : files) {
+		for (final String fileName : files) {
 			if (fileName.endsWith("_Sig_WithoutNonSpecific")) {
 				final File textFile = new File(inputdir + File.separator + fileName);
 				validProteins.addAll(OptionsPanel.readFilteredQuantFile(textFile));
@@ -171,13 +172,14 @@ public class Quantitatives {
 
 			FileInputStream fis;
 
+			final Differential differential = dlist.get(baitindex);
 			try {
-				Median median = new Median();
+				final Median median = new Median();
 				Map<String, Integer> indexesByHeaders = null;
 				Map<Integer, Integer> ratioIndexesByReplicate = null;
 				fis = new FileInputStream(f);
-				BufferedInputStream bis = new BufferedInputStream(fis);
-				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+				final BufferedInputStream bis = new BufferedInputStream(fis);
+				final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 				String dataline;
 
@@ -185,13 +187,14 @@ public class Quantitatives {
 					if (dataline.startsWith("PLINE")) {
 						// header
 						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(dataline);
-						ratioIndexesByReplicate = PreFilterUtils.getRatioIndexesByReplicate(dataline);
+						ratioIndexesByReplicate = PreFilterUtils.getRatioIndexesByReplicate(dataline,
+								PreFilterUtils.area_ratio_x_regexp);
 					}
 					if (dataline.startsWith("P\t")) {
-						String[] element = dataline.split("\t");
-						List<Double> peptideRatios = new ArrayList<Double>();
-						for (Integer index : ratioIndexesByReplicate.values()) {
-							String ratioForReplicateString = element[index];
+						final String[] element = dataline.split("\t");
+						final List<Double> peptideRatios = new ArrayList<Double>();
+						for (final Integer index : ratioIndexesByReplicate.values()) {
+							final String ratioForReplicateString = element[index];
 							String[] split = null;
 							if (ratioForReplicateString.contains(",")) {
 								split = ratioForReplicateString.split(",");
@@ -199,22 +202,22 @@ public class Quantitatives {
 								split = new String[1];
 								split[0] = ratioForReplicateString;
 							}
-							for (String individualRatioString : split) {
+							for (final String individualRatioString : split) {
 								try {
 									final Double ratioValue = Double.valueOf(individualRatioString);
 									peptideRatios.add(ratioValue);
-								} catch (NumberFormatException e) {
+								} catch (final NumberFormatException e) {
 
 								}
 							}
 						}
-						double[] ratioArray = new double[peptideRatios.size()];
+						final double[] ratioArray = new double[peptideRatios.size()];
 						int index2 = 0;
-						for (double d : peptideRatios) {
+						for (final double d : peptideRatios) {
 							ratioArray[index2++] = d;
 						}
 						// make the median
-						double value = median.evaluate(ratioArray);
+						final double value = median.evaluate(ratioArray);
 
 						final String description = element[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)];
 						String pname = FastaParser.getGeneFromFastaHeader(description);
@@ -255,18 +258,18 @@ public class Quantitatives {
 						// value = 0;
 						// }
 						if (validProteins.isEmpty() || validProteins.contains(pname)) {
-							dlist.get(baitindex).addValue(pname, value);
+							differential.addValue(pname, value);
 						}
 					}
 
 				}
 
-			} catch (FileNotFoundException e) {
+			} catch (final FileNotFoundException e) {
 				System.err.println("file not found");
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				System.err.println("unable to read file");
 			}
-			log.info(dlist.get(baitindex).getData().size() + " proteins read");
+			log.info(differential.getData().size() + " proteins read");
 
 		}
 
@@ -289,11 +292,11 @@ public class Quantitatives {
 			setLayout(new GridLayout(0, 2));
 
 			for (int i = 0; i < files.length; i++) {
-				JTextField tfield = new JTextField(files[i]);
+				final JTextField tfield = new JTextField(files[i]);
 				tfield.setEditable(false);
 				texts.add(tfield);
 
-				JComboBox<String> box = getBox(baits);
+				final JComboBox<String> box = getBox(baits);
 				box.addActionListener(this);
 				baitslist.add(box);
 

@@ -12,19 +12,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComboBox;
+
+import org.apache.log4j.Logger;
 
 import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
+import edu.scripps.p3.prefilter.PreFilterUtils;
 
 /**
  * @author diego
  * 
  */
 public class Controls extends Inputs {
-
+	private final static Logger log = Logger.getLogger(Controls.class);
 	private double lbound;
 	private double hbound;
 	private boolean twotails;
@@ -55,6 +59,7 @@ public class Controls extends Inputs {
 		for (int i = 0; i < files.length; i++) {
 
 			f = new File(inputdir, files[i]);
+			log.info("Reading input control file " + f.getAbsolutePath());
 
 			baitindex = assignments.get(i)[0];
 			expindex = assignments.get(i)[1];
@@ -76,13 +81,17 @@ public class Controls extends Inputs {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
-
+				Map<String, Integer> indexesByHeaders = null;
 				String dataline;
 				boolean dataStarts = false;
+				int numProteins = 0;
 				while ((dataline = dis.readLine()) != null) {
 					if (dataline.startsWith("Unique")) {
 						dataStarts = true;
 						continue;
+					}
+					if (dataline.startsWith("Locus")) {
+						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(dataline);
 					}
 					if (dataStarts && dataline.contains("\t") && "Proteins".equals(dataline.split("\t")[1])) {
 						break;
@@ -90,8 +99,8 @@ public class Controls extends Inputs {
 					if (dataStarts && dataline.contains("\t") && !"".equals(dataline.split("\t")[0])
 							&& !"*".equals(dataline.split("\t")[0])) {
 
-						Protein p = getProtein(dataline);
-
+						Protein p = getProtein(dataline, indexesByHeaders);
+						numProteins++;
 						if (p.getScount() > 0) {
 							if (allbait && allexp) {
 								fullFilter(p);
@@ -111,7 +120,7 @@ public class Controls extends Inputs {
 					}
 
 				}
-
+				log.info(numProteins + " proteins readed for bait " + baitindex + " condition " + expindex);
 			} catch (FileNotFoundException e) {
 				System.err.println("file not found");
 			} catch (IOException e) {

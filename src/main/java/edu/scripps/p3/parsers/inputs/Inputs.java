@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -35,6 +36,7 @@ import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.parsers.inputs.utilities.ApvCalculator;
 import edu.scripps.p3.parsers.inputs.utilities.NewCoverageFixer;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
+import edu.scripps.p3.prefilter.PreFilterUtils;
 import edu.scripps.yates.utilities.fasta.FastaParser;
 
 /**
@@ -187,7 +189,7 @@ public class Inputs {
 		for (int i = 0; i < files.length; i++) {
 
 			f = new File(inputdir, files[i]);
-
+			log.info("Reading input file " + f.getAbsolutePath());
 			baitindex = assignments.get(i)[0];
 			expindex = assignments.get(i)[1];
 			final Experiment experiment = elist.get(baitindex);
@@ -199,7 +201,7 @@ public class Inputs {
 				fis = new FileInputStream(f);
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
-
+				Map<String, Integer> indexesByHeaders = null;
 				String dataline;
 				boolean dataStarts = false;
 				while ((dataline = dis.readLine()) != null) {
@@ -207,13 +209,17 @@ public class Inputs {
 						dataStarts = true;
 						continue;
 					}
+					if (dataline.startsWith("Locus")) {
+						indexesByHeaders = PreFilterUtils.getIndexesByHeaders(dataline);
+					}
 					if (dataStarts && dataline.contains("\t") && "Proteins".equals(dataline.split("\t")[1])) {
 						break;
 					}
+
 					if (dataStarts && dataline.contains("\t") && !"".equals(dataline.split("\t")[0])
 							&& !"*".equals(dataline.split("\t")[0])) {
 
-						Protein p = getProtein(dataline);
+						Protein p = getProtein(dataline, indexesByHeaders);
 
 						if (p.getName().length() > 1) {
 
@@ -234,17 +240,14 @@ public class Inputs {
 					}
 
 				}
-
+				log.info(conditionFromExperiment.getNumberOfProteins() + " proteins readed for bait " + baitindex
+						+ " condition " + expindex);
 			} catch (FileNotFoundException e) {
 				System.err.println("file not found");
 			} catch (IOException e) {
 				System.err.println("unable to read file");
 			}
 
-		}
-
-		if (elist.get(0).getCondition(0).proteinInTable("ULK1")) {
-			System.out.println("Ulk1 in table");
 		}
 
 		// CoverageFixer cfix = new CoverageFixer(elist, rootdir);
@@ -274,20 +277,21 @@ public class Inputs {
 		return p3;
 	}
 
-	protected Protein getProtein(String s) {
+	protected Protein getProtein(String s, Map<String, Integer> indexesByHeaders) {
 		String[] tmp = s.split("\t");
 
-		double sequenceCount = Double.parseDouble(tmp[1]);
-		double specCount = Double.parseDouble(tmp[2]);
-		if (tmp[3].endsWith("%")) {
-			tmp[3] = tmp[3].substring(0, tmp[3].length() - 1);
+		double sequenceCount = Double.parseDouble(tmp[indexesByHeaders.get("Sequence Count")]);
+		double specCount = Double.parseDouble(tmp[indexesByHeaders.get("Spectrum Count")]);
+		String sequenceCoverageString = tmp[indexesByHeaders.get("Sequence Coverage")];
+		if (sequenceCoverageString.endsWith("%")) {
+			sequenceCoverageString = sequenceCoverageString.substring(0, sequenceCoverageString.length() - 1);
 		}
-		double coverage = Double.parseDouble(tmp[3]);
-		double lenght = Double.parseDouble(tmp[4]);
-		double molweight = Double.parseDouble(tmp[5]);
-		double pi = Double.parseDouble(tmp[6]);
-		String proteinDescription = tmp[8];
-		String fullAccession = tmp[0];
+		double coverage = Double.parseDouble(sequenceCoverageString);
+		double lenght = Double.parseDouble(tmp[indexesByHeaders.get("Length")]);
+		double molweight = Double.parseDouble(tmp[indexesByHeaders.get("MolWt")]);
+		double pi = Double.parseDouble(tmp[indexesByHeaders.get("pI")]);
+		String proteinDescription = tmp[indexesByHeaders.get("Descriptive Name")];
+		String fullAccession = tmp[indexesByHeaders.get("Locus")];
 
 		// disabled by Salva
 		// String locus = " ", name = " ";
@@ -333,8 +337,10 @@ public class Inputs {
 		}
 		String name = FastaParser.getGeneFromFastaHeader(proteinDescription);
 		if (name == null) {
+
 			// take the first word of the description
 			name = proteinDescription.substring(0, proteinDescription.indexOf(" "));
+
 			if (name == null) {
 				name = locus;
 			}

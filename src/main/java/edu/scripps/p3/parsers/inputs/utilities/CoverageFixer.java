@@ -10,13 +10,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.io.MyFileChooser;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 /**
  * @author diego
@@ -26,7 +26,7 @@ public class CoverageFixer {
 
 	List<Experiment> elist;
 	File cdir;
-	Hashtable<String, Double> coverages;
+	TObjectDoubleHashMap<String> coverages;
 
 	/**
 	 * @param elist
@@ -42,15 +42,13 @@ public class CoverageFixer {
 	 */
 	public void run() {
 
-		coverages = new Hashtable<String, Double>();
+		coverages = new TObjectDoubleHashMap<String>();
 		setCoverageTable();
 
 		double proteinCoverage;
 
-		Enumeration<String> proteinNames = coverages.keys();
-		while (proteinNames.hasMoreElements()) {
-
-			String proteinName = proteinNames.nextElement();
+		final Set<String> proteinNames = coverages.keySet();
+		for (final String proteinName : proteinNames) {
 
 			proteinCoverage = coverages.get(proteinName);
 
@@ -72,28 +70,28 @@ public class CoverageFixer {
 
 	public void setCoverageTable() {
 
-		MyFileChooser dIO = new MyFileChooser(cdir);
-		File pepcutter = dIO.openFile("Select PeptideCutter file");
+		final MyFileChooser dIO = new MyFileChooser(cdir);
+		final File pepcutter = dIO.openFile("Select PeptideCutter file");
 		FileInputStream fis;
 		try {
 			fis = new FileInputStream(pepcutter);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+			final BufferedInputStream bis = new BufferedInputStream(fis);
+			final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 			String dataline;
 			double val;
 
 			while ((dataline = dis.readLine()) != null) {
 
-				String[] element = dataline.split("\t");
+				final String[] element = dataline.split("\t");
 				val = Double.parseDouble(element[1]);
 				coverages.put(element[0], val);
 
 			}
 
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			System.err.println("file not found");
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("unable to read bait file");
 		}
 

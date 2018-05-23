@@ -15,6 +15,8 @@ import javax.swing.JFileChooser;
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 
+import gnu.trove.map.hash.TObjectIntHashMap;
+
 /**
  * diego
  * Jan 27, 2014
@@ -28,18 +30,18 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
  */
 public class FilterTrends {
 
-	Hashtable<String, Integer> lut;
+	TObjectIntHashMap<String> lut;
 	List<String> baits;
 	double[] bvalues;
 	Hashtable<String, double[]> preys;
 
 	public void run() {
 		// select bait file
-		File bfile = openFile("Select bait file");
+		final File bfile = openFile("Select bait file");
 		// select input file for bait value
-		File ifile = openFile("Select input file");
+		final File ifile = openFile("Select input file");
 		// select output file for prey trends
-		File ofile = openFile("Select score file");
+		final File ofile = openFile("Select score file");
 		// select where to save
 		// File outdir = outDir("Select where to save");
 
@@ -50,7 +52,7 @@ public class FilterTrends {
 			extractPreys(ofile);
 			calculateCorrelation();
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 
@@ -67,22 +69,22 @@ public class FilterTrends {
 		FileInputStream fis;
 
 		fis = new FileInputStream(ifile);
-		BufferedInputStream bis = new BufferedInputStream(fis);
-		BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+		final BufferedInputStream bis = new BufferedInputStream(fis);
+		final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 		String dataline;
 
 		while ((dataline = dis.readLine()) != null) {
 
 			if (!dataline.startsWith("Locus")) {
-				String[] elements = dataline.split("\t");
+				final String[] elements = dataline.split("\t");
 
-				String name = elements[7].split(" ")[0];
+				final String name = elements[7].split(" ")[0];
 
 				if (baits.contains(name)) {
 
-					int index = lut.get(name);
-					double value = Double.parseDouble(elements[2]);
+					final int index = lut.get(name);
+					final double value = Double.parseDouble(elements[2]);
 
 					bvalues[index] = value;
 
@@ -102,9 +104,9 @@ public class FilterTrends {
 		double correlation;
 		int overlap;
 		String key;
-		PearsonsCorrelation pc = new PearsonsCorrelation();
+		final PearsonsCorrelation pc = new PearsonsCorrelation();
 
-		Enumeration<String> enumkeys = preys.keys();
+		final Enumeration<String> enumkeys = preys.keys();
 
 		System.out.println("Prey\tOverlap\tCorrelation");
 
@@ -113,9 +115,9 @@ public class FilterTrends {
 			key = enumkeys.nextElement();
 			overlap = 0;
 
-			double[] scores = preys.get(key);
+			final double[] scores = preys.get(key);
 
-			for (double s : scores) {
+			for (final double s : scores) {
 				if (s != 0.0) {
 					overlap++;
 				}
@@ -139,8 +141,8 @@ public class FilterTrends {
 		FileInputStream fis;
 
 		fis = new FileInputStream(ofile);
-		BufferedInputStream bis = new BufferedInputStream(fis);
-		BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+		final BufferedInputStream bis = new BufferedInputStream(fis);
+		final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 		String dataline;
 
@@ -174,7 +176,7 @@ public class FilterTrends {
 
 			if (goon) {
 
-				String[] elements = dataline.split("\t");
+				final String[] elements = dataline.split("\t");
 
 				if (elements.length > 10) {
 					if (elements[10].equals("discarded")) {
@@ -193,7 +195,7 @@ public class FilterTrends {
 					if (preys.containsKey(prey)) {
 						preys.get(prey)[index] = score;
 					} else {
-						double[] scores = new double[baits.size()];
+						final double[] scores = new double[baits.size()];
 						scores[index] = score;
 						preys.put(prey, scores);
 					}
@@ -211,19 +213,19 @@ public class FilterTrends {
 	 */
 	private void extractBaits(File bfile) throws IOException {
 
-		lut = new Hashtable<String, Integer>();
+		lut = new TObjectIntHashMap<String>();
 		baits = new ArrayList<String>();
 
 		FileInputStream fis;
 
 		fis = new FileInputStream(bfile);
-		BufferedInputStream bis = new BufferedInputStream(fis);
-		BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+		final BufferedInputStream bis = new BufferedInputStream(fis);
+		final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 		String dataline;
 
 		while ((dataline = dis.readLine()) != null) {
-			String[] elements = dataline.split("-");
+			final String[] elements = dataline.split("-");
 
 			for (int i = 0; i < elements.length; i++) {
 
@@ -240,7 +242,7 @@ public class FilterTrends {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		FilterTrends ft = new FilterTrends();
+		final FilterTrends ft = new FilterTrends();
 		ft.run();
 
 	}
@@ -249,10 +251,10 @@ public class FilterTrends {
 
 		File f = null;
 
-		JFileChooser fc = new JFileChooser();
+		final JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fc.setDialogTitle(t);
-		int returnval = fc.showOpenDialog(null);
+		final int returnval = fc.showOpenDialog(null);
 
 		if (returnval == JFileChooser.APPROVE_OPTION) {
 			f = fc.getSelectedFile();
@@ -263,11 +265,11 @@ public class FilterTrends {
 
 	public File outDir(String title) {
 
-		JFileChooser fc = new JFileChooser();
+		final JFileChooser fc = new JFileChooser();
 		File f = null;
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fc.setDialogTitle(title);
-		int returnval = fc.showSaveDialog(null);
+		final int returnval = fc.showSaveDialog(null);
 		if (returnval == JFileChooser.APPROVE_OPTION) {
 			f = fc.getSelectedFile();
 		} else {

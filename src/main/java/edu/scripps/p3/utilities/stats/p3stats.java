@@ -16,6 +16,7 @@ import java.util.List;
 
 import javax.swing.JFileChooser;
 
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 import jxl.Workbook;
 import jxl.format.Colour;
 import jxl.write.Label;
@@ -49,38 +50,38 @@ public class p3stats {
 	Hashtable<String, Protein> table;
 	Hashtable<String, List<String>> pools;
 	Hashtable<String, List<String>> baitlists;
-	Hashtable<String, Double> qlist;
+	TObjectDoubleHashMap<String> qlist;
 	List<String> craps;
 	private File curdir;
 
 	public void run() {
 
 		// load input file
-		File stat = openFile("Select p3 final stat file");
+		final File stat = openFile("Select p3 final stat file");
 
 		parseStat(stat);
 
-		File inp = openFile("Select confidence file");
+		final File inp = openFile("Select confidence file");
 
 		parseInp(inp);
 
-		File qfile = openFile("Select quant file");
+		final File qfile = openFile("Select quant file");
 
 		parseQuant(qfile);
 
-		File crapfile = openFile("Select crapome file");
+		final File crapfile = openFile("Select crapome file");
 
 		parseCrapome(crapfile);
 
-		File outdir = outDir("Select where to save");
+		final File outdir = outDir("Select where to save");
 
-		File out = new File(outdir, "InteractionMatrix.xls");
+		final File out = new File(outdir, "InteractionMatrix.xls");
 
-		WritableWorkbook obook = createWorkbook(out);
+		final WritableWorkbook obook = createWorkbook(out);
 
 		try {
 			createMatrix(obook);
-		} catch (WriteException e) {
+		} catch (final WriteException e) {
 
 			e.printStackTrace();
 		}
@@ -93,11 +94,11 @@ public class p3stats {
 	 */
 	private void createMatrix(WritableWorkbook obook) throws WriteException {
 
-		WritableSheet h = obook.createSheet("H", 0);
-		WritableSheet l = obook.createSheet("L", 1);
+		final WritableSheet h = obook.createSheet("H", 0);
+		final WritableSheet l = obook.createSheet("L", 1);
 
-		List<String> heavy = pools.get("H");
-		List<String> light = pools.get("L");
+		final List<String> heavy = pools.get("H");
+		final List<String> light = pools.get("L");
 
 		writeLabel(obook, h, 0, 0, "Proteins", false, false);
 		writeLabel(obook, l, 0, 0, "Proteins", false, false);
@@ -105,8 +106,8 @@ public class p3stats {
 		Collections.sort(heavy);
 		Collections.sort(light);
 
-		List<String> bheavy = baitlists.get("H");
-		List<String> blight = baitlists.get("L");
+		final List<String> bheavy = baitlists.get("H");
+		final List<String> blight = baitlists.get("L");
 
 		Collections.sort(bheavy);
 		Collections.sort(blight);
@@ -118,8 +119,8 @@ public class p3stats {
 			writeLabel(obook, l, 0, k + 1, light.get(k), false, false);
 		}
 
-		Hashtable<String, Integer> bhlut = new Hashtable<String, Integer>();
-		Hashtable<String, Integer> bllut = new Hashtable<String, Integer>();
+		final Hashtable<String, Integer> bhlut = new Hashtable<String, Integer>();
+		final Hashtable<String, Integer> bllut = new Hashtable<String, Integer>();
 
 		int index = 1;
 
@@ -142,19 +143,19 @@ public class p3stats {
 		double max_quant = Double.NEGATIVE_INFINITY;
 		double ratio;
 
-		DecimalFormat df = new DecimalFormat("#.###");
+		final DecimalFormat df = new DecimalFormat("#.###");
 
-		Hashtable<String, List<String>> protunk_h = new Hashtable<String, List<String>>();
-		Hashtable<String, List<String>> protunk_l = new Hashtable<String, List<String>>();
+		final Hashtable<String, List<String>> protunk_h = new Hashtable<String, List<String>>();
+		final Hashtable<String, List<String>> protunk_l = new Hashtable<String, List<String>>();
 
 		Enumeration<String> enumkeys = table.keys();
 		while (enumkeys.hasMoreElements()) {
 
-			String key = enumkeys.nextElement();
+			final String key = enumkeys.nextElement();
 
-			Protein p = table.get(key);
+			final Protein p = table.get(key);
 
-			String bait = p.getBait();
+			final String bait = p.getBait();
 
 			if (bait.endsWith("H")) {
 
@@ -166,9 +167,9 @@ public class p3stats {
 
 					if (p.KnownContainProt(heavy.get(i))) {
 
-						double val = p.getKnownValue(heavy.get(i));
+						final double val = p.getKnownValue(heavy.get(i));
 
-						String label = df.format(val);
+						final String label = df.format(val);
 
 						writeLabel(obook, h, column_h, i + 1, label, true, false);
 
@@ -183,13 +184,13 @@ public class p3stats {
 						if (p.UnknownContainProt(heavy.get(i))) {
 
 							if (!protunk_h.containsKey(heavy.get(i))) {
-								List<String> bts = new ArrayList<String>();
+								final List<String> bts = new ArrayList<String>();
 								protunk_h.put(heavy.get(i), bts);
 							}
 
-							double val = p.getUnknownValue(heavy.get(i));
+							final double val = p.getUnknownValue(heavy.get(i));
 
-							String label = df.format(val);
+							final String label = df.format(val);
 
 							writeLabel(obook, h, column_h, i + 1, label, false, true);
 
@@ -232,9 +233,9 @@ public class p3stats {
 
 					if (p.KnownContainProt(light.get(i))) {
 
-						double val = p.getKnownValue(light.get(i));
+						final double val = p.getKnownValue(light.get(i));
 
-						String label = df.format(val);
+						final String label = df.format(val);
 
 						writeLabel(obook, l, column_l, i + 1, label, true, false);
 
@@ -249,13 +250,13 @@ public class p3stats {
 						if (p.UnknownContainProt(light.get(i))) {
 
 							if (!protunk_l.containsKey(light.get(i))) {
-								List<String> bts = new ArrayList<String>();
+								final List<String> bts = new ArrayList<String>();
 								protunk_l.put(light.get(i), bts);
 							}
 
-							double val = p.getUnknownValue(light.get(i));
+							final double val = p.getUnknownValue(light.get(i));
 
-							String label = df.format(val);
+							final String label = df.format(val);
 
 							writeLabel(obook, l, column_l, i + 1, label, false, true);
 
@@ -358,9 +359,9 @@ public class p3stats {
 				continue;
 			}
 
-			List<String> baits = protunk_h.get(key);
+			final List<String> baits = protunk_h.get(key);
 
-			for (String b : baits) {
+			for (final String b : baits) {
 				if (table.get(b).IsLysateTrend(key)) {
 					keysToRemove.add(key);
 				}
@@ -368,7 +369,7 @@ public class p3stats {
 
 		}
 
-		for (String k : keysToRemove) {
+		for (final String k : keysToRemove) {
 			protunk_h.remove(k);
 		}
 
@@ -383,9 +384,9 @@ public class p3stats {
 				continue;
 			}
 
-			List<String> baits = protunk_l.get(key);
+			final List<String> baits = protunk_l.get(key);
 
-			for (String b : baits) {
+			for (final String b : baits) {
 				if (table.get(b).IsLysateTrend(key)) {
 					keysToRemove.add(key);
 				}
@@ -393,12 +394,12 @@ public class p3stats {
 
 		}
 
-		for (String k : keysToRemove) {
+		for (final String k : keysToRemove) {
 			protunk_l.remove(k);
 		}
 
-		WritableSheet uh = obook.createSheet("Unknown Unique Not Lysate H", 2);
-		WritableSheet ul = obook.createSheet("Unknown Unique Not Lysate L", 3);
+		final WritableSheet uh = obook.createSheet("Unknown Unique Not Lysate H", 2);
+		final WritableSheet ul = obook.createSheet("Unknown Unique Not Lysate L", 3);
 
 		writeLabel(obook, uh, 0, 0, "Protein", false, false);
 		writeLabel(obook, ul, 0, 0, "Protein", false, false);
@@ -409,7 +410,7 @@ public class p3stats {
 		writeLabel(obook, uh, 2, 0, "Score", false, false);
 		writeLabel(obook, ul, 2, 0, "Score", false, false);
 
-		Hashtable<String, Integer> shared = new Hashtable<String, Integer>();
+		final Hashtable<String, Integer> shared = new Hashtable<String, Integer>();
 
 		enumkeys = protunk_h.keys();
 		double val;
@@ -420,9 +421,9 @@ public class p3stats {
 		while (enumkeys.hasMoreElements()) {
 
 			key = enumkeys.nextElement();
-			List<String> baits = protunk_h.get(key);
+			final List<String> baits = protunk_h.get(key);
 
-			for (String b : baits) {
+			for (final String b : baits) {
 
 				val = table.get(b).getUnknownValue(key);
 
@@ -454,9 +455,9 @@ public class p3stats {
 		while (enumkeys.hasMoreElements()) {
 
 			key = enumkeys.nextElement();
-			List<String> baits = protunk_l.get(key);
+			final List<String> baits = protunk_l.get(key);
 
-			for (String b : baits) {
+			for (final String b : baits) {
 
 				val = table.get(b).getUnknownValue(key);
 
@@ -497,14 +498,14 @@ public class p3stats {
 
 		}
 
-		WritableSheet s = obook.createSheet("Unknown Unique Not Lysate S", 4);
-		WritableSheet ns = obook.createSheet("Unknown Unique Not Lysate", 5);
+		final WritableSheet s = obook.createSheet("Unknown Unique Not Lysate S", 4);
+		final WritableSheet ns = obook.createSheet("Unknown Unique Not Lysate", 5);
 		writeLabel(obook, ns, 0, 0, "Protein", false, false);
 		writeLabel(obook, ns, 1, 0, "Bait", false, false);
 
 		rowindex = 1;
 
-		for (String k : keysToRemove) {
+		for (final String k : keysToRemove) {
 
 			writeLabel(obook, ns, 0, rowindex, k.split("@")[0], false, false);
 			writeLabel(obook, ns, 1, rowindex, k.split("@")[1], false, false);
@@ -564,7 +565,7 @@ public class p3stats {
 
 		}
 
-		WritableSheet crap = obook.createSheet("Crapome", 6);
+		final WritableSheet crap = obook.createSheet("Crapome", 6);
 		writeLabel(obook, crap, 0, 0, "Bait", false, false);
 		writeLabel(obook, crap, 1, 0, "Unknwon proteins", false, false);
 		writeLabel(obook, crap, 2, 0, "In Crapome", false, false);
@@ -576,7 +577,7 @@ public class p3stats {
 		double belong = 0;
 		double total = 0;
 
-		List<String> crapResult = new ArrayList<String>();
+		final List<String> crapResult = new ArrayList<String>();
 
 		while (enumkeys.hasMoreElements()) {
 			key = enumkeys.nextElement();
@@ -584,7 +585,7 @@ public class p3stats {
 			total = table.get(key).getUnknowns().size();
 			belong = 0;
 
-			for (String prey : table.get(key).getUnknowns()) {
+			for (final String prey : table.get(key).getUnknowns()) {
 
 				if (craps.contains(prey)) {
 					belong++;
@@ -598,7 +599,7 @@ public class p3stats {
 
 		Collections.sort(crapResult);
 		String[] elements;
-		for (String prey : crapResult) {
+		for (final String prey : crapResult) {
 
 			elements = prey.split("\t");
 
@@ -621,8 +622,8 @@ public class p3stats {
 
 		try {
 			fis = new FileInputStream(cfile);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+			final BufferedInputStream bis = new BufferedInputStream(fis);
+			final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 			String dataline;
 
@@ -632,7 +633,7 @@ public class p3stats {
 
 			}
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("unable to read file");
 		}
 
@@ -640,14 +641,14 @@ public class p3stats {
 
 	private void parseQuant(File qfile) {
 
-		qlist = new Hashtable<String, Double>();
+		qlist = new TObjectDoubleHashMap<String>();
 
 		FileInputStream fis;
 
 		try {
 			fis = new FileInputStream(qfile);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+			final BufferedInputStream bis = new BufferedInputStream(fis);
+			final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 			String dataline;
 			String[] elements;
@@ -663,7 +664,7 @@ public class p3stats {
 
 			}
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("unable to read file");
 		}
 
@@ -679,8 +680,8 @@ public class p3stats {
 
 		try {
 			fis = new FileInputStream(stat);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+			final BufferedInputStream bis = new BufferedInputStream(fis);
+			final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 			String dataline;
 			String bait = null;
@@ -748,7 +749,7 @@ public class p3stats {
 
 			}
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("unable to read file");
 		}
 
@@ -767,8 +768,8 @@ public class p3stats {
 
 		try {
 			fis = new FileInputStream(inp);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
+			final BufferedInputStream bis = new BufferedInputStream(fis);
+			final BufferedReader dis = new BufferedReader(new InputStreamReader(bis));
 
 			String dataline;
 			String exp = null;
@@ -776,14 +777,14 @@ public class p3stats {
 			String bait = null;
 			String value;
 
-			Protein p = null;
+			final Protein p = null;
 			boolean known = false;
 
 			boolean go = false;
 			boolean towrite = true;
 			boolean lysate = false;
 
-			double min = Double.POSITIVE_INFINITY;
+			final double min = Double.POSITIVE_INFINITY;
 
 			while ((dataline = dis.readLine()) != null) {
 
@@ -832,7 +833,7 @@ public class p3stats {
 
 				if (go) {
 
-					String[] elements = dataline.split("\t");
+					final String[] elements = dataline.split("\t");
 
 					name = elements[0];
 					value = elements[7];
@@ -904,9 +905,9 @@ public class p3stats {
 
 			// getStats(exp, minaverage, average);
 
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			System.err.println("file not found");
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("unable to read file");
 		}
 
@@ -941,7 +942,7 @@ public class p3stats {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		p3stats p3s = new p3stats();
+		final p3stats p3s = new p3stats();
 		p3s.run();
 
 	}
@@ -950,11 +951,11 @@ public class p3stats {
 
 		File f = null;
 
-		JFileChooser fc = new JFileChooser();
+		final JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		fc.setDialogTitle(t);
 		fc.setCurrentDirectory(curdir);
-		int returnval = fc.showOpenDialog(null);
+		final int returnval = fc.showOpenDialog(null);
 
 		if (returnval == JFileChooser.APPROVE_OPTION) {
 			f = fc.getSelectedFile();
@@ -966,12 +967,12 @@ public class p3stats {
 
 	public File outDir(String title) {
 
-		JFileChooser fc = new JFileChooser();
+		final JFileChooser fc = new JFileChooser();
 		File f = null;
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fc.setDialogTitle(title);
 		fc.setCurrentDirectory(curdir);
-		int returnval = fc.showSaveDialog(null);
+		final int returnval = fc.showSaveDialog(null);
 		if (returnval == JFileChooser.APPROVE_OPTION) {
 			f = fc.getSelectedFile();
 		} else {
@@ -987,7 +988,7 @@ public class p3stats {
 
 		try {
 			workbook = Workbook.createWorkbook(out);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 
 			e.printStackTrace();
 		}
@@ -997,13 +998,13 @@ public class p3stats {
 	public void writeLabel(WritableWorkbook book, WritableSheet sheet, int column, int row, String text, boolean known,
 			boolean unk) throws WriteException {
 
-		WritableCellFormat format = new WritableCellFormat();
+		final WritableCellFormat format = new WritableCellFormat();
 		format.setBackground(Colour.LIGHT_BLUE); // format for known
 
-		WritableCellFormat format1 = new WritableCellFormat();
+		final WritableCellFormat format1 = new WritableCellFormat();
 		format1.setBackground(Colour.LIGHT_ORANGE); // format for unknown
 
-		WritableCellFormat format2 = new WritableCellFormat();
+		final WritableCellFormat format2 = new WritableCellFormat();
 		format2.setBackground(Colour.LIGHT_GREEN); // format for unique
 
 		// if (isNumeric(text)) {
@@ -1038,10 +1039,10 @@ public class p3stats {
 
 		try {
 			sheet.addCell(label);
-		} catch (RowsExceededException e) {
+		} catch (final RowsExceededException e) {
 
 			e.printStackTrace();
-		} catch (WriteException e) {
+		} catch (final WriteException e) {
 
 			e.printStackTrace();
 		}
@@ -1052,8 +1053,8 @@ public class p3stats {
 	public boolean isNumeric(String str) {
 		try {
 			@SuppressWarnings("unused")
-			double d = Double.parseDouble(str);
-		} catch (NumberFormatException nfe) {
+			final double d = Double.parseDouble(str);
+		} catch (final NumberFormatException nfe) {
 			return false;
 		}
 		return true;
@@ -1061,13 +1062,13 @@ public class p3stats {
 
 	public void writeNumber(WritableWorkbook book, WritableSheet sheet, int column, int row, double val) {
 
-		Number number = new Number(column, row, val);
+		final Number number = new Number(column, row, val);
 		try {
 			sheet.addCell(number);
-		} catch (RowsExceededException e) {
+		} catch (final RowsExceededException e) {
 
 			e.printStackTrace();
-		} catch (WriteException e) {
+		} catch (final WriteException e) {
 
 			e.printStackTrace();
 		}
@@ -1076,15 +1077,15 @@ public class p3stats {
 	public void writeExcel(WritableWorkbook book) {
 		try {
 			book.write();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 
 		try {
 			book.close();
-		} catch (WriteException e) {
+		} catch (final WriteException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -1149,10 +1150,10 @@ public class p3stats {
 		@SuppressWarnings("unused")
 		public List<String> getKnowns() {
 
-			List<String> pnames = new ArrayList<String>();
-			Enumeration<String> enumkeys = known.keys();
+			final List<String> pnames = new ArrayList<String>();
+			final Enumeration<String> enumkeys = known.keys();
 			while (enumkeys.hasMoreElements()) {
-				String key = enumkeys.nextElement();
+				final String key = enumkeys.nextElement();
 
 				pnames.add(key);
 
@@ -1165,10 +1166,10 @@ public class p3stats {
 		@SuppressWarnings("unused")
 		public List<String> getUnknowns() {
 
-			List<String> pnames = new ArrayList<String>();
-			Enumeration<String> enumkeys = unknown.keys();
+			final List<String> pnames = new ArrayList<String>();
+			final Enumeration<String> enumkeys = unknown.keys();
 			while (enumkeys.hasMoreElements()) {
-				String key = enumkeys.nextElement();
+				final String key = enumkeys.nextElement();
 
 				pnames.add(key);
 

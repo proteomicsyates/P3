@@ -23,6 +23,7 @@ import edu.scripps.p3.experimentallist.Condition;
 import edu.scripps.p3.experimentallist.Experiment;
 import edu.scripps.p3.io.MyFileChooser;
 import edu.scripps.p3.parsers.inputs.utilities.Protein;
+import gnu.trove.list.array.TDoubleArrayList;
 
 /**
  * @author diego
@@ -54,7 +55,7 @@ public class ComplexCorrelator {
 		log = new StringBuffer();
 		experimentComplexes = new ArrayList<List<Complex>>();
 
-		int fullsize = getFullSize();
+		final int fullsize = getFullSize();
 
 		progressMonitor = new ProgressMonitor(null, "Calculating Correlation Complexes", "Initialization...", 0,
 				fullsize);
@@ -63,7 +64,7 @@ public class ComplexCorrelator {
 
 		for (int baitID = 0; baitID < elist.size(); baitID++) {
 
-			List<Complex> complexGroup = new ArrayList<Complex>();
+			final List<Complex> complexGroup = new ArrayList<Complex>();
 			experimentComplexes.add(complexGroup);
 
 			final Experiment experiment = elist.get(baitID);
@@ -71,7 +72,7 @@ public class ComplexCorrelator {
 
 				final Condition condition = experiment.getCondition(conditionID);
 				log.append("Working on " + experiment.getName() + "_" + condition.getName() + "\n");
-				log.append("SPC Correlation threshold for R^2=" + this.rSquaredThreshold);
+				log.append("SPC Correlation threshold for R^2=" + rSquaredThreshold);
 				initializeMatrix(condition.getNumberOfProteins());
 
 				fillMatrix(baitID, conditionID);
@@ -83,7 +84,7 @@ public class ComplexCorrelator {
 
 		progressMonitor.close();
 
-		MyFileChooser dIO = new MyFileChooser();
+		final MyFileChooser dIO = new MyFileChooser();
 		dIO.writeLog(lout, log, "ComplexCorrelatorLog");
 
 	}
@@ -94,7 +95,7 @@ public class ComplexCorrelator {
 
 		this.baits = new HashSet<String>();
 
-		for (String s : baits) {
+		for (final String s : baits) {
 			this.baits.add(s);
 		}
 
@@ -104,18 +105,18 @@ public class ComplexCorrelator {
 
 		final Experiment experiment = elist.get(bait_id);
 		final Condition condition = experiment.getCondition(condition_id);
-		Complex cmpx = new Complex(experiment.getName(), condition.getName());
+		final Complex cmpx = new Complex(experiment.getName(), condition.getName());
 
 		experimentComplexes.get(bait_id).add(cmpx);
 
 		progressMonitor.setNote("Processing " + experiment.getName() + " for " + condition.getName());
 
-		Runtime r = Runtime.getRuntime();
-		long keepAlive = 50000;
+		final Runtime r = Runtime.getRuntime();
+		final long keepAlive = 50000;
 
 		final int availableProcessors = r.availableProcessors();
 		final int maximumPoolSize = availableProcessors * 2;
-		ThreadPoolExecutor executor = new ThreadPoolExecutor(1, maximumPoolSize, keepAlive, TimeUnit.MILLISECONDS,
+		final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, maximumPoolSize, keepAlive, TimeUnit.MILLISECONDS,
 				new LinkedBlockingQueue<Runnable>(100));
 		executor.allowCoreThreadTimeOut(true);
 
@@ -124,7 +125,7 @@ public class ComplexCorrelator {
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 				try {
 					Thread.sleep(1000);
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
 				if (r instanceof Correlator) {
@@ -139,7 +140,7 @@ public class ComplexCorrelator {
 
 		for (int i = 0; i < condition.getNumberOfProteins(); i++) {
 
-			Runnable worker = new Correlator(bait_id, condition_id, i, rSquaredThreshold);
+			final Runnable worker = new Correlator(bait_id, condition_id, i, rSquaredThreshold);
 			executor.execute(worker);
 
 		}
@@ -149,28 +150,28 @@ public class ComplexCorrelator {
 			executor.awaitTermination(2, TimeUnit.HOURS);
 			log4j.info("Executor done with bait " + bait_id + " and condition " + condition_id + " "
 					+ correlatorsRunning + " correlators running");
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
-	private double correlationCalculator(List<Double> preyx, List<Double> preyy) {
+	private double correlationCalculator(TDoubleArrayList preyx, TDoubleArrayList preyy) {
 
-		PearsonsCorrelation pc = new PearsonsCorrelation();
+		final PearsonsCorrelation pc = new PearsonsCorrelation();
 
 		double c_pc;
 		double c_sc;
 
 		double correlation;
-		double[] array1 = new double[preyx.size()];
-		double[] array2 = new double[preyx.size()];
-		final Double[] array1_TMP = preyx.toArray(new Double[0]);
+		final double[] array1 = new double[preyx.size()];
+		final double[] array2 = new double[preyx.size()];
+		final double[] array1_TMP = preyx.toArray();
 		for (int k = 0; k < array1_TMP.length; k++) {
 			array1[k] = array1_TMP[k];
 		}
-		final Double[] array2_TMP = preyy.toArray(new Double[0]);
+		final double[] array2_TMP = preyy.toArray();
 		for (int k = 0; k < array2_TMP.length; k++) {
 			array2[k] = array2_TMP[k];
 		}
@@ -180,7 +181,7 @@ public class ComplexCorrelator {
 			correlation = c_pc;
 		} else {
 			c_pc = pc.correlation(array1, array2);
-			SpearmansCorrelation sc = new SpearmansCorrelation();
+			final SpearmansCorrelation sc = new SpearmansCorrelation();
 			c_sc = sc.correlation(array1, array2);
 			correlation = (c_pc + c_sc) / 2;
 		}
@@ -201,7 +202,7 @@ public class ComplexCorrelator {
 
 	private void fillMatrix(int bait_id, int condition_id) {
 
-		List<String> pnames = elist.get(bait_id).getCondition(condition_id).getPnames();
+		final List<String> pnames = elist.get(bait_id).getCondition(condition_id).getPnames();
 
 		double value_i;
 		double value_j;
@@ -248,7 +249,7 @@ public class ComplexCorrelator {
 
 		double value = 0;
 
-		Protein p = elist.get(bait_id).getCondition(condition_id).getProtein(pname);
+		final Protein p = elist.get(bait_id).getCondition(condition_id).getProtein(pname);
 
 		value = (p.getApv() * p.getLength()) / p.getMw();
 
@@ -294,12 +295,12 @@ public class ComplexCorrelator {
 		@Override
 		public void run() {
 			++correlatorsRunning;
-			List<Double> preyx;
-			List<Double> preyy;
+			TDoubleArrayList preyx;
+			TDoubleArrayList preyy;
 
 			List<String> trending_complex;
 
-			preyx = new ArrayList<Double>();
+			preyx = new TDoubleArrayList();
 			trending_complex = new ArrayList<String>();
 			final Experiment experiment = elist.get(myBait);
 			final Condition condition = experiment.getCondition(myCondition);
@@ -322,7 +323,7 @@ public class ComplexCorrelator {
 			for (int j = 0; j < matrix.size(); j++) {
 				if (j != proteinIndexInMatrix) { // skip the diagonal
 
-					preyy = new ArrayList<Double>();
+					preyy = new TDoubleArrayList();
 
 					for (int s = 0; s < matrix.get(j).size(); s++) {
 

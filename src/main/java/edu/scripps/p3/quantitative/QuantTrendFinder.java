@@ -14,6 +14,7 @@ import edu.scripps.p3.experimentallist.Interactome;
 import edu.scripps.p3.experimentallist.network.Network;
 import edu.scripps.p3.experimentallist.network.interaction.Interaction;
 import edu.scripps.p3.io.MyFileChooser;
+import gnu.trove.list.array.TDoubleArrayList;
 
 /**
  * @author diego
@@ -26,7 +27,7 @@ public class QuantTrendFinder {
 	private final File logdir;
 	private StringBuffer log;
 	private double tlevel;
-	private List<List<Double>> matrix;
+	private List<TDoubleArrayList> matrix;
 
 	private ProgressMonitor progressMonitor;
 	private static int progress = 0;
@@ -74,9 +75,9 @@ public class QuantTrendFinder {
 		log = new StringBuffer();
 		log.append("Creating q complexes\n");
 
-		int fullsize = getFullSize();
+		final int fullsize = getFullSize();
 
-		StringBuilder qlog = new StringBuilder();
+		final StringBuilder qlog = new StringBuilder();
 
 		progressMonitor = new ProgressMonitor(null, "Calculating Quantitative Trends", "Initializing", 0, fullsize);
 		progress = 0;
@@ -96,7 +97,7 @@ public class QuantTrendFinder {
 
 			qlog.append("Condition " + baitIndex + "\n");
 
-			for (String qname : qlist.get(baitIndex).getQlist()) {
+			for (final String qname : qlist.get(baitIndex).getQlist()) {
 
 				qlog.append(qname + "\t" + qlist.get(baitIndex).getDiffValue(qname) + "\n");
 
@@ -106,7 +107,7 @@ public class QuantTrendFinder {
 
 		progressMonitor.close();
 
-		MyFileChooser dIO = new MyFileChooser();
+		final MyFileChooser dIO = new MyFileChooser();
 		dIO.writeLog(logdir, log, "QuantTrend");
 
 		dIO.writeLog(logdir, qlog, "QuantValues");
@@ -119,7 +120,7 @@ public class QuantTrendFinder {
 
 		String protein1, protein2;
 
-		Differential differential = qlist.get(bait_id);
+		final Differential differential = qlist.get(bait_id);
 		for (int i = 0; i < differential.getQlist().size(); i++) {
 
 			protein1 = differential.getQlist().get(i);
@@ -136,22 +137,22 @@ public class QuantTrendFinder {
 				final String proteinPairKey = protein1 + "_" + protein2;
 				if (val > 0.1) {
 
-					for (Interactome interactome : interactomes.get(bait_id)) {
+					for (final Interactome interactome : interactomes.get(bait_id)) {
 
 						if (interactome.isNetworkinSystem(protein1)) {
 							log.append(proteinPairKey + "\t" + val + "\n");
 							if (protein2.equals("PRP43")) {
 								System.out.println("ASDF");
 							}
-							Network net = interactome.getNetwork(protein1);
+							final Network net = interactome.getNetwork(protein1);
 
 							if (net.getInteractorsNames().contains(protein2)) {
 
-								Interaction inter = net.getInteractionByInteractorName(protein2);
+								final Interaction inter = net.getInteractionByInteractorName(protein2);
 								inter.setQuant_score(val);
 							} else {
 
-								Interaction inter = new Interaction(protein2);
+								final Interaction inter = new Interaction(protein2);
 								inter.setQuant_score(val);
 								net.addInteraction(protein2, inter);
 
@@ -179,12 +180,12 @@ public class QuantTrendFinder {
 
 	private void fillMatrix(int id, int bait_id) {
 
-		int size = qlist.get(bait_id).getQlist().size();
+		final int size = qlist.get(bait_id).getQlist().size();
 
 		double v1;
 		double v2;
 
-		List<Double> column = new ArrayList<Double>();
+		final TDoubleArrayList column = new TDoubleArrayList();
 
 		v1 = getProteinRatio(id, bait_id);
 
@@ -195,7 +196,7 @@ public class QuantTrendFinder {
 
 			v2 = getProteinRatio(j, bait_id);
 
-			double proteinRatioDistance = getProteinRatioDistance(v1, v2);
+			final double proteinRatioDistance = getProteinRatioDistance(v1, v2);
 			column.add(proteinRatioDistance);
 
 		}
@@ -204,7 +205,7 @@ public class QuantTrendFinder {
 
 	}
 
-	private void addColumn(List<Double> column) {
+	private void addColumn(TDoubleArrayList column) {
 
 		matrix.add(column);
 
@@ -229,10 +230,10 @@ public class QuantTrendFinder {
 			ratio = v2 / v1;
 		}
 
-		double floor = Math.floor(ratio);
-		double ceil = Math.ceil(ratio);
+		final double floor = Math.floor(ratio);
+		final double ceil = Math.ceil(ratio);
 
-		double min = Math.min(ratio - floor, ceil - ratio);
+		final double min = Math.min(ratio - floor, ceil - ratio);
 
 		distance = 1 - (min * 2);
 
@@ -241,16 +242,16 @@ public class QuantTrendFinder {
 
 	private double getProteinRatio(int proteinIndex, int bait_id) {
 
-		String proteinKey = qlist.get(bait_id).getQlist().get(proteinIndex);
+		final String proteinKey = qlist.get(bait_id).getQlist().get(proteinIndex);
 
-		double val = qlist.get(bait_id).getData().get(proteinKey);
+		final double val = qlist.get(bait_id).getData().get(proteinKey);
 
 		return val;
 	}
 
 	private void initializeMatrix(int size) {
 
-		matrix = new ArrayList<List<Double>>();
+		matrix = new ArrayList<TDoubleArrayList>();
 
 	}
 

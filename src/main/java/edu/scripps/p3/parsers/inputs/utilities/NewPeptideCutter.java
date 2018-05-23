@@ -2,8 +2,6 @@ package edu.scripps.p3.parsers.inputs.utilities;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -17,13 +15,14 @@ import edu.scripps.p3.util.P3Constants;
 import edu.scripps.yates.utilities.fasta.FastaParser;
 import edu.scripps.yates.utilities.strings.StringUtils;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 public class NewPeptideCutter {
 	private final Logger log = Logger.getLogger(NewPeptideCutter.class);
 	private final File fastaFile;
 	private String enzymeName;
 	private final int missedCleavages;
-	private final Map<String, Double> maxCoverages = new HashMap<String, Double>();
+	private final TObjectDoubleHashMap<String> maxCoverages = new TObjectDoubleHashMap<String>();
 
 	public NewPeptideCutter(File fastaFile) {
 		this(fastaFile, null, 0);
@@ -96,7 +95,7 @@ public class NewPeptideCutter {
 		return maxCoverages.get(acc);
 	}
 
-	public Map<String, Double> getMaxEffectiveCoverages() {
+	public TObjectDoubleHashMap<String> getMaxEffectiveCoverages() {
 		return maxCoverages;
 	}
 }

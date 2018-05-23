@@ -4,14 +4,14 @@
  */
 package edu.scripps.p3.quantitative;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import edu.scripps.p3.experimentallist.Differential;
 import edu.scripps.p3.experimentallist.Interactome;
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 /**
  * @author diego
@@ -19,9 +19,9 @@ import edu.scripps.p3.experimentallist.Interactome;
  */
 public class LysateTrendFinder {
 	private final static Logger log = Logger.getLogger(LysateTrendFinder.class);
-	private List<Differential> qlist;
-	private List<Differential> llist;
-	private List<List<Interactome>> interactomes;
+	private final List<Differential> qlist;
+	private final List<Differential> llist;
+	private final List<List<Interactome>> interactomes;
 
 	private double lowT;
 	private double highT;
@@ -42,8 +42,8 @@ public class LysateTrendFinder {
 	 * @param high
 	 */
 	public void setT(double low, double high) {
-		this.lowT = low;
-		this.highT = high;
+		lowT = low;
+		highT = high;
 
 	}
 
@@ -55,21 +55,18 @@ public class LysateTrendFinder {
 		double quant;
 		double lysate;
 		double ratio;
-		String key;
 
 		for (int i = 0; i < qlist.size(); i++) {
 
 			final Differential differential = qlist.get(i);
-			Hashtable<String, Double> qvalues = differential.getData();
+			final TObjectDoubleHashMap<String> qvalues = differential.getData();
 			final Differential differential2 = llist.get(i);
-			Hashtable<String, Double> lvalues = differential2.getData();
+			final TObjectDoubleHashMap<String> lvalues = differential2.getData();
 			log.info("Looking for quantitative trends between the lysate " + lvalues.size() + " and the experiment "
 					+ qvalues.size() + " in bait " + differential.getName());
-			Enumeration<String> enumKey = qvalues.keys();
+			final Set<String> keySet = qvalues.keySet();
 
-			while (enumKey.hasMoreElements()) {
-
-				key = enumKey.nextElement();
+			for (final String key : keySet) {
 
 				quant = qvalues.get(key);
 				if (lvalues.containsKey(key)) {
@@ -84,9 +81,9 @@ public class LysateTrendFinder {
 
 						for (int j = 0; j < interactomes.get(i).size(); j++) {
 
-							Interactome interactome = interactomes.get(i).get(j);
+							final Interactome interactome = interactomes.get(i).get(j);
 
-							for (String bait : interactome.getProteinsHavingANetwork()) {
+							for (final String bait : interactome.getProteinsHavingANetwork()) {
 
 								if (interactome.getNetwork(bait).isInNetwork(key)) {
 

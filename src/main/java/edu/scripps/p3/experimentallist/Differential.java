@@ -1,18 +1,18 @@
 package edu.scripps.p3.experimentallist;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.List;
+
+import gnu.trove.map.hash.TObjectDoubleHashMap;
 
 public class Differential {
 
-	Hashtable<String, Double> data;
+	TObjectDoubleHashMap<String> data;
 	String name;
 
 	public Differential(String name) {
 		this.name = name;
-		data = new Hashtable<String, Double>();
+		data = new TObjectDoubleHashMap<String>();
 	}
 
 	/**
@@ -28,7 +28,7 @@ public class Differential {
 
 		if (data.containsKey(name)) {
 
-			double oldvalue = data.get(name);
+			final double oldvalue = data.get(name);
 			value = (oldvalue + value) / 2;
 			data.put(name, value);
 
@@ -41,7 +41,7 @@ public class Differential {
 	/**
 	 * @return the data
 	 */
-	public Hashtable<String, Double> getData() {
+	public TObjectDoubleHashMap<String> getData() {
 		return data;
 	}
 
@@ -49,7 +49,7 @@ public class Differential {
 	 * @param data
 	 *            the data to set
 	 */
-	public void setData(Hashtable<String, Double> data) {
+	public void setData(TObjectDoubleHashMap<String> data) {
 		this.data = data;
 	}
 
@@ -93,18 +93,8 @@ public class Differential {
 	 */
 	public List<String> getQlist() {
 
-		List<String> qlist = new ArrayList<String>();
-
-		Enumeration<String> enumkeys = data.keys();
-		String key;
-
-		while (enumkeys.hasMoreElements()) {
-
-			key = enumkeys.nextElement();
-			qlist.add(key);
-
-		}
-
+		final List<String> qlist = new ArrayList<String>();
+		qlist.addAll(data.keySet());
 		return qlist;
 
 	}

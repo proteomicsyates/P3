@@ -71,7 +71,7 @@ public class NewPeptideCutter {
 				}
 				String geneName = FastaParser.getGeneFromFastaHeader(protein.getHeader().getRawHeader());
 				if (geneName == null) {
-					final String acc = FastaParser.getACC(protein.getHeader().getAccession()).getFirstelement();
+					final String acc = FastaParser.getACC(protein.getHeader().getAccession()).getAccession();
 					geneName = acc;
 				}
 				final Double efectiveCoverage = maxSequence * 100.0 / originalLength;

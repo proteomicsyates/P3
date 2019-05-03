@@ -53,8 +53,8 @@ public class FilterRealExperiment {
 	}
 
 	/**
-	 * It filters a IP control experiment, that is, an experiment in which a
-	 * real IP has been compared to a Mock IP.<br>
+	 * It filters a IP control experiment, that is, an experiment in which a real IP
+	 * has been compared to a Mock IP.<br>
 	 * It creates 3 output files:
 	 * <ul>
 	 * <li>inputFileName_Sig</li>
@@ -62,10 +62,8 @@ public class FilterRealExperiment {
 	 * <li>inputFileName_Not_Enough_Replicates</li>
 	 * </ul>
 	 *
-	 * @param controlExperimentFile
-	 *            this is a QuantCompare file
-	 * @param pvalueThreshold
-	 *            a p-value threshold
+	 * @param controlExperimentFile this is a QuantCompare file
+	 * @param pvalueThreshold       a p-value threshold
 	 * @throws IOException
 	 */
 	protected void filter() throws IOException {
@@ -106,13 +104,12 @@ public class FilterRealExperiment {
 			final Map<Integer, Integer> indexesByReplicates = PreFilterUtils.getRatioIndexesByReplicate(split,
 					PreFilterUtils.area_ratio_x_regexp);
 			s = in.readLine(); // The reader is now at the first line of data
-			split = s.split("\t");
 
 			double counterStatTest = 0.0;
 			double counterStatTestPassed = 0.0;
 
 			while (s != null) {
-
+				split = s.split("\t");
 				boolean processed = false;
 				final String UniProt_Acc = split[indexesByHeaders.get(PreFilterUtils.ACC)];
 				final String ProteinInfo = split[indexesByHeaders.get(PreFilterUtils.DESCRIPTION)];
@@ -318,7 +315,7 @@ public class FilterRealExperiment {
 
 		String s = in.readLine();
 		String[] split = s.split("\t");
-		while (!split[0].equals("locus")) {
+		while (!split[0].equals("locus") && !split[0].equals("PLINE")) {
 			s = in.readLine();
 
 			split = s.split("\t");
@@ -341,6 +338,9 @@ public class FilterRealExperiment {
 			final List<Double> ratios = new ArrayList<Double>();
 			double counter = 0;
 			final String ratiosString = PreFilterUtils.getOldRatioString(indexesByReplicates, s);
+			if (ProteinInfo.contains("PRKAA2")) {
+				log.info(ProteinInfo + "\t" + ratiosString);
+			}
 
 			boolean inReplicate1 = false;
 			boolean inReplicate2 = false;
@@ -432,7 +432,9 @@ public class FilterRealExperiment {
 							indexInArray++;
 						}
 					}
-
+					if (UniProt_Acc.equals("P54646")) {
+						log.info("asdf");
+					}
 					final double avgRatio = Maths.mean(ratiosArray);
 
 					if (ratiosArray.length == 1) {

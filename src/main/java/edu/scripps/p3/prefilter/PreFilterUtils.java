@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 public class PreFilterUtils {
 	protected final static String replicateREGEXP = "AREA_RATIO_1_(\\d+)";
-	protected final static String replicateNEWFORMATREGEXP = "peptide ratio (\\d+)";
-	public static final String ACC = "LOCUS";
+	protected final static String replicateNEWFORMATREGEXP = "peptide ratio limited\\s*(\\d+)";
+	public static final String ACC = "ACCESSION";
 	public static final String LOCUS = "locus";
 	public static final String DESCRIPTION = "DESCRIPTION";
 	public static final String DESCRIPTION_LOWER_CASE = "description";

@@ -114,6 +114,9 @@ public class FilterMockExperiment {
 
 			while (s2 != null) {
 				final String uniProt_Acc = split2[indexesByHeader2.get(PreFilterUtils.ACC)];
+				if (uniProt_Acc.equals("P54646")) {
+					log.info("ASDF");
+				}
 				// String UniProt_Acc = split2[1];
 				// String[] splitRatios2 = split2[8].split(";");
 				final String[] splitRatios2 = PreFilterUtils.getOldRatioString(indexByReplicate2, split2).split(";");
@@ -320,9 +323,8 @@ public class FilterMockExperiment {
 									outPassed.flush();
 
 								} else {
-									// passed filters becasue pvalue and ratios
-									// pass
-									// thresholds
+									// passed filters because pvalue and ratios
+									// pass thresholds
 									outFilteredOut.write(UniProt_Acc + "\t" + pvalue + "\t" + avgRatio
 											+ "\tTRUE\tTRUE\tFALSE\t" + ProteinInfo + "\t" + ratiosString + "\n");
 									outFilteredOut.flush();
@@ -357,8 +359,8 @@ public class FilterMockExperiment {
 	}
 
 	/**
-	 * This will read the file the same way, but taking into account another
-	 * format of census quant compare files
+	 * This will read the file the same way, but taking into account another format
+	 * of census quant compare files
 	 * 
 	 * @throws IOException
 	 */
@@ -408,9 +410,17 @@ public class FilterMockExperiment {
 
 		while (s2 != null) {
 			final String uniProt_Acc = split2[indexesByHeader2.get(PreFilterUtils.LOCUS)];
+			if (uniProt_Acc.equals("P54646")) {
+				log.info(uniProt_Acc + " in file " + FilenameUtils.getName(ip2File.getAbsolutePath()));
+			}
+			final String proteinDescription = split2[indexesByHeader2.get(PreFilterUtils.DESCRIPTION_LOWER_CASE)];
 			// String UniProt_Acc = split2[1];
 			// String[] splitRatios2 = split2[8].split(";");
-			final String[] splitRatios2 = PreFilterUtils.getOldRatioString(indexByReplicate2, split2).split(";");
+			final String oldRatioString = PreFilterUtils.getOldRatioString(indexByReplicate2, split2);
+			if (proteinDescription.contains("PRKAA2")) {
+				log.info(uniProt_Acc + "\t" + proteinDescription + "\t" + oldRatioString);
+			}
+			final String[] splitRatios2 = oldRatioString.split(";");
 			final List<Double> ratios = new ArrayList<Double>();
 			int counter = 0;
 			for (int i = 0; i < splitRatios2.length; i++) {
@@ -429,7 +439,7 @@ public class FilterMockExperiment {
 			int singletonRatioCounter = 0;
 
 			for (int i = 0; i < ratios.size(); i++) {
-				if (ratios.get(i) >= singletonFilter) {
+				if (ratios.get(i) <= singletonFilter2nd) {
 					singletonRatioCounter++;
 				}
 			}
@@ -476,6 +486,9 @@ public class FilterMockExperiment {
 			double counter = 0;
 			// String ratiosString = split[8];
 			final String ratiosString = PreFilterUtils.getOldRatioString(indexByReplicate1, split);
+			if (ProteinInfo.contains("PRKAA2")) {
+				log.info(ProteinInfo + "\t" + ratiosString);
+			}
 			final String[] splitRatios1 = ratiosString.split(";");
 			boolean inReplicate1 = false;
 			boolean inReplicate2 = false;

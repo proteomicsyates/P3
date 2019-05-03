@@ -30,75 +30,58 @@ public class RemoveNonSpecificInteractors {
 	private final File mock2FilterOut;
 	private final File mock1Passed;
 	private final File mock2Passed;
-	private final File significativeRealExperiment;
-	private File significativeInteractorsWithoutNonSpecific;
-
-	public static void main(String[] args) {
-
-		String inputFileNameNonSpecific1 = args[0];
-		String inputFileNameNonSpecific2 = args[1];
-		String inputFileNameSpecific1 = args[2];
-		String inputFileNameSpecific2 = args[3];
-		String realExperiment = args[4];
-		final RemoveNonSpecificInteractors removeNonSpecificInteractors = new RemoveNonSpecificInteractors(
-				new File(inputFileNameNonSpecific1), new File(inputFileNameNonSpecific2),
-				new File(inputFileNameSpecific1), new File(inputFileNameSpecific2), new File(realExperiment));
-		try {
-			removeNonSpecificInteractors.filter();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+	private final File realExperimentSignificative;
+	private final File realExperimentNonSignificative;
+	private File specificSignificativeInteractors;
+	private File specificNonsignificativeInteractors;
 
 	protected RemoveNonSpecificInteractors(FilterMockExperiment filterMock1, FilterMockExperiment filterMock2,
 			FilterRealExperiment filterRealExperiment) throws IOException {
 		this(filterMock1.getFilterOutFile(), filterMock1.getPassedFile(), filterMock2.getFilterOutFile(),
-				filterMock2.getPassedFile(), filterRealExperiment.getSignificativeInteractorsFile());
+				filterMock2.getPassedFile(), filterRealExperiment.getSignificativeInteractorsFile(),
+				filterRealExperiment.getNoSignificativeInteractorsFile());
 	}
 
 	protected RemoveNonSpecificInteractors(File mock1FilterOut, File mock1Passed, File mock2FilterOut, File mock2Passed,
-			File significativeRealExperiment) {
+			File realExperimentSignificative, File realExperimentNonSignificative) {
 		this.mock1FilterOut = mock1FilterOut;
 		this.mock1Passed = mock1Passed;
 		this.mock2FilterOut = mock2FilterOut;
 		this.mock2Passed = mock2Passed;
-		this.significativeRealExperiment = significativeRealExperiment;
+		this.realExperimentSignificative = realExperimentSignificative;
+		this.realExperimentNonSignificative = realExperimentNonSignificative;
 	}
 
-	/**
-	 *
-	 * @param mock1FilterOut
-	 * @param mock2FilterOut
-	 * @param mock1Passed
-	 * @param mock2Passed
-	 * @param realExperiment
-	 * @return
-	 * @throws IOException
-	 */
-	protected File filter() throws IOException {
+	private File filterFromSignificatives() throws IOException {
+		return filter(realExperimentSignificative);
+	}
 
-		log.info("Filtering non specific interactors from "
-				+ FilenameUtils.getName(significativeRealExperiment.getAbsolutePath()) + " using the following files: "
-				+ FilenameUtils.getName(mock1FilterOut.getAbsolutePath()) + ", "
+	private File filterFromNonSignificatives() throws IOException {
+		return filter(realExperimentNonSignificative);
+	}
+
+	private File filter(File toFilter) throws IOException {
+		log.info("Filtering non specific interactors from " + FilenameUtils.getName(toFilter.getAbsolutePath())
+				+ " using the following files: " + FilenameUtils.getName(mock1FilterOut.getAbsolutePath()) + ", "
 				+ FilenameUtils.getName(mock1Passed.getAbsolutePath()) + ", "
 				+ FilenameUtils.getName(mock2FilterOut.getAbsolutePath()) + ", "
 				+ FilenameUtils.getName(mock2Passed.getAbsolutePath()));
-		BufferedReader inNon1 = new BufferedReader(new FileReader(mock1FilterOut));
-		BufferedReader inNon2 = new BufferedReader(new FileReader(mock2FilterOut));
-		BufferedReader in1 = new BufferedReader(new FileReader(mock1Passed));
-		BufferedReader in2 = new BufferedReader(new FileReader(mock2Passed));
+		final BufferedReader inNon1 = new BufferedReader(new FileReader(mock1FilterOut));
+		final BufferedReader inNon2 = new BufferedReader(new FileReader(mock2FilterOut));
+		final BufferedReader in1 = new BufferedReader(new FileReader(mock1Passed));
+		final BufferedReader in2 = new BufferedReader(new FileReader(mock2Passed));
 
-		Set<String> inclusionSet1 = new HashSet<String>();
-		Set<String> inclusionSet2 = new HashSet<String>();
+		final Set<String> inclusionSet1 = new HashSet<String>();
+		final Set<String> inclusionSet2 = new HashSet<String>();
 
-		Set<String> exclusionSet1 = new HashSet<String>();
-		Set<String> exclusionSet2 = new HashSet<String>();
+		final Set<String> exclusionSet1 = new HashSet<String>();
+		final Set<String> exclusionSet2 = new HashSet<String>();
 
 		String line1 = in1.readLine();
 		line1 = in1.readLine();
 
 		while (line1 != null) {
-			String[] split = line1.split("\t");
+			final String[] split = line1.split("\t");
 			inclusionSet1.add(split[0]);
 			line1 = in1.readLine();
 		}
@@ -107,7 +90,7 @@ public class RemoveNonSpecificInteractors {
 		line2 = in2.readLine();
 
 		while (line2 != null) {
-			String[] split = line2.split("\t");
+			final String[] split = line2.split("\t");
 			inclusionSet2.add(split[0]);
 			line2 = in2.readLine();
 		}
@@ -116,7 +99,7 @@ public class RemoveNonSpecificInteractors {
 		lineNon1 = inNon1.readLine();
 
 		while (lineNon1 != null) {
-			String[] split = lineNon1.split("\t");
+			final String[] split = lineNon1.split("\t");
 			exclusionSet1.add(split[0]);
 			lineNon1 = inNon1.readLine();
 		}
@@ -125,16 +108,15 @@ public class RemoveNonSpecificInteractors {
 		lineNon2 = inNon2.readLine();
 
 		while (lineNon2 != null) {
-			String[] split = lineNon2.split("\t");
+			final String[] split = lineNon2.split("\t");
 			exclusionSet2.add(split[0]);
 			lineNon2 = inNon2.readLine();
 		}
 
-		BufferedReader in3 = new BufferedReader(new FileReader(significativeRealExperiment));
+		final BufferedReader in3 = new BufferedReader(new FileReader(toFilter));
 
-		significativeInteractorsWithoutNonSpecific = FileUtils.appendToFileName(significativeRealExperiment, null,
-				"_WithoutNonSpecific");
-		BufferedWriter out = new BufferedWriter(new FileWriter(significativeInteractorsWithoutNonSpecific));
+		final File specificInteractors = FileUtils.appendToFileName(toFilter, null, "_WithoutNonSpecific");
+		final BufferedWriter out = new BufferedWriter(new FileWriter(specificInteractors));
 
 		String line3 = in3.readLine();
 		out.write(line3 + "\n");
@@ -143,7 +125,10 @@ public class RemoveNonSpecificInteractors {
 
 		while (line3 != null) {
 			int numTimesInInclusionList = 0;
-			String[] split = line3.split("\t");
+			final String[] split = line3.split("\t");
+			if (split[0].equals("P54646")) {
+				log.info("asdf");
+			}
 			boolean include;
 			if (inclusionSet1.contains(split[0]) || inclusionSet2.contains(split[0])) {
 				include = true;
@@ -170,18 +155,21 @@ public class RemoveNonSpecificInteractors {
 		inNon2.close();
 		out.close();
 		log.info("Execution terminated.");
-		return significativeInteractorsWithoutNonSpecific;
+		return specificInteractors;
 
 	}
 
-	/**
-	 * @return the significativeInteractorsWithoutNonSpecific
-	 * @throws IOException
-	 */
-	protected File getSignificativeInteractorsWithoutNonSpecific() throws IOException {
-		if (significativeInteractorsWithoutNonSpecific == null) {
-			filter();
+	protected File getSpecificSignificativeInteractors() throws IOException {
+		if (specificSignificativeInteractors == null) {
+			specificSignificativeInteractors = filterFromSignificatives();
 		}
-		return significativeInteractorsWithoutNonSpecific;
+		return specificSignificativeInteractors;
+	}
+
+	protected File getSpecificNonSignificativeInteractors() throws IOException {
+		if (specificNonsignificativeInteractors == null) {
+			specificNonsignificativeInteractors = filterFromNonSignificatives();
+		}
+		return specificNonsignificativeInteractors;
 	}
 }

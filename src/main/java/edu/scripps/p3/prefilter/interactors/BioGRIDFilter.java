@@ -9,9 +9,9 @@ import java.util.Set;
 
 import gnu.trove.set.hash.THashSet;
 
-public class BiogridFilter extends InteractionFilter {
+public class BioGRIDFilter extends InteractionFilter {
 
-	public BiogridFilter(File table) throws IOException {
+	public BioGRIDFilter(File table) throws IOException {
 		loadTable(table);
 	}
 
@@ -29,10 +29,10 @@ public class BiogridFilter extends InteractionFilter {
 	}
 
 	public static void main(String[] args) {
-		BiogridFilter sf;
+		BioGRIDFilter sf;
 		try {
 			int num = 1;
-			sf = new BiogridFilter(new File(args[0]));
+			sf = new BioGRIDFilter(new File(args[0]));
 			final String bait = args[1];
 			final List<AbstractInteraction> interactors = sf.getConfidentInteractors(null, bait);
 			for (final AbstractInteraction interaction : interactors) {
@@ -43,6 +43,7 @@ public class BiogridFilter extends InteractionFilter {
 					System.out.println();
 				}
 			}
+			System.out.println(sf.getUniqueConfidentInteractors(null, bait).size() + " unique interactors");
 			System.exit(0);
 		} catch (final IOException e) {
 			e.printStackTrace();
@@ -110,4 +111,5 @@ public class BiogridFilter extends InteractionFilter {
 		});
 		return ret;
 	}
+
 }

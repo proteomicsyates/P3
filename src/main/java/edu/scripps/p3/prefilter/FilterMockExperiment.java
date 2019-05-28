@@ -30,8 +30,8 @@ import edu.scripps.yates.utilities.maths.Maths;
 public class FilterMockExperiment {
 	private static final Logger log = Logger.getLogger(FilterMockExperiment.class);
 
-	public static final double singletonFilter = 4.0;
-	public static final double singletonFilter2nd = 1.0 / singletonFilter;
+	public static final double singletonFilter = 2.0;
+	public static final double singletonFilter2nd = -2.0;
 	private final File ip1File;
 	private final File ip2File;
 	private final double pvalueThreshold;
@@ -139,7 +139,7 @@ public class FilterMockExperiment {
 				double singletonRatioCounter = 0.0;
 
 				for (int i = 0; i < ratios.size(); i++) {
-					if (ratios.get(i) <= (1.0 / singletonFilter)) {
+					if (ratios.get(i) <= singletonFilter2nd) {
 						singletonRatioCounter++;
 					}
 				}
@@ -302,7 +302,7 @@ public class FilterMockExperiment {
 							// get t-statistic
 							final TTest tstat = new TTest();
 
-							final double t = tstat.tTest(1.0, ratiosArray);
+							final double t = tstat.tTest(0.0, ratiosArray);
 							// TDistribution tdist = new
 							// TDistribution(intensitiesAvg.length-2);
 							// For each peptide compute t-test pvalue and store
@@ -316,7 +316,7 @@ public class FilterMockExperiment {
 							if (pvalue < pvalueThreshold) {
 								counterStatTestPassed++;
 								processed = true;
-								if (avgRatio > avgRatioThreshold) {
+								if (avgRatio > Maths.log(avgRatioThreshold, 2)) {
 									// discarded because ratio threshold
 									outPassed.write(UniProt_Acc + "\t" + pvalue + "\t" + avgRatio + "\tFALSE" + "\t"
 											+ "TRUE" + "\t" + ProteinInfo + "\t" + ratiosString + "\n");
@@ -348,6 +348,8 @@ public class FilterMockExperiment {
 			}
 			in1.close();
 			in2.close();
+			outPassed.close();
+			outFilteredOut.close();
 			FDR = (counterStatTest * pvalueThreshold) / counterStatTestPassed;
 
 			log.info("Completed");
@@ -370,6 +372,7 @@ public class FilterMockExperiment {
 				+ " and avgRatioThreshold=" + avgRatioThreshold);
 		// String inputFileName = "src/data/quant_stat_compare2732.txt";
 		final BufferedReader in1 = new BufferedReader(new FileReader(ip1File));
+
 		// in1 has to be FM
 		final BufferedReader in2 = new BufferedReader(new FileReader(ip2File));
 		// in2 has to be Phen
@@ -410,15 +413,15 @@ public class FilterMockExperiment {
 
 		while (s2 != null) {
 			final String uniProt_Acc = split2[indexesByHeader2.get(PreFilterUtils.LOCUS)];
-			if (uniProt_Acc.equals("P54646")) {
-				log.info(uniProt_Acc + " in file " + FilenameUtils.getName(ip2File.getAbsolutePath()));
+			if (uniProt_Acc.equals("P10809")) {
+//				log.info(uniProt_Acc + " in file " + FilenameUtils.getName(ip2File.getAbsolutePath()));
 			}
 			final String proteinDescription = split2[indexesByHeader2.get(PreFilterUtils.DESCRIPTION_LOWER_CASE)];
 			// String UniProt_Acc = split2[1];
 			// String[] splitRatios2 = split2[8].split(";");
 			final String oldRatioString = PreFilterUtils.getOldRatioString(indexByReplicate2, split2);
 			if (proteinDescription.contains("PRKAA2")) {
-				log.info(uniProt_Acc + "\t" + proteinDescription + "\t" + oldRatioString);
+//				log.info(uniProt_Acc + "\t" + proteinDescription + "\t" + oldRatioString);
 			}
 			final String[] splitRatios2 = oldRatioString.split(";");
 			final List<Double> ratios = new ArrayList<Double>();
@@ -428,9 +431,9 @@ public class FilterMockExperiment {
 				for (int j = 0; j < subSplitRatios2.length; j++) {
 					if (!subSplitRatios2[j].equals("X") && !(subSplitRatios2[j].length() < 1)) {
 						if (ip2ConditionLight) {
-							ratios.add(Double.parseDouble(subSplitRatios2[j]));
+							ratios.add(Maths.log(Double.parseDouble(subSplitRatios2[j]), 2));
 						} else {
-							ratios.add(1 / Double.parseDouble(subSplitRatios2[j]));
+							ratios.add(Maths.log(1 / Double.parseDouble(subSplitRatios2[j]), 2));
 						}
 						counter++;
 					}
@@ -486,7 +489,7 @@ public class FilterMockExperiment {
 			double counter = 0;
 			// String ratiosString = split[8];
 			final String ratiosString = PreFilterUtils.getOldRatioString(indexByReplicate1, split);
-			if (ProteinInfo.contains("PRKAA2")) {
+			if (ProteinInfo.contains("P10809")) {
 				log.info(ProteinInfo + "\t" + ratiosString);
 			}
 			final String[] splitRatios1 = ratiosString.split(";");
@@ -500,9 +503,9 @@ public class FilterMockExperiment {
 				for (int j = 0; j < splitRatios2.length; j++) {
 					if (!splitRatios2[j].equals("X") && !(splitRatios2[j].length() < 1)) {
 						if (ip1ConditionLight) {
-							ratios.add(Double.parseDouble(splitRatios2[j]));
+							ratios.add(Maths.log(Double.parseDouble(splitRatios2[j]), 2));
 						} else {
-							ratios.add(1 / Double.parseDouble(splitRatios2[j]));
+							ratios.add(Maths.log(1 / Double.parseDouble(splitRatios2[j]), 2));
 
 						}
 						counter++;
@@ -553,15 +556,15 @@ public class FilterMockExperiment {
 						// proteins that have at least half peptides singleton
 						// in one control and the same in the other control, are
 						// discarded for not being an specific interaction.
-						outFilteredOut.write(UniProt_Acc + "\tN\\A\tN\\A\tFALSE\tTRUE\tTRUE\t" + ProteinInfo + "\t"
-								+ ratiosString + "\n");
+						outFilteredOut.write(
+								UniProt_Acc + "\tN\\A\tFALSE\tTRUE\tTRUE\t" + ProteinInfo + "\t" + ratiosString + "\n");
 						outFilteredOut.flush();
 						processed = true;
 					} else {
 						// proteins that have more than half peptides singleton
 						// in one control but not in the other
-						outPassed.write(
-								UniProt_Acc + "\tN\\A\tN\\A\tTRUE\tTRUE\t" + ProteinInfo + "\t" + ratiosString + "\n");
+						outPassed
+								.write(UniProt_Acc + "\tN\\A\tTRUE\tTRUE\t" + ProteinInfo + "\t" + ratiosString + "\n");
 						outPassed.flush();
 						processed = true;
 					}
@@ -593,7 +596,8 @@ public class FilterMockExperiment {
 						// get t-statistic
 						final TTest tstat = new TTest();
 
-						final double t = tstat.tTest(1.0, ratiosArray);
+						final double t = tstat.tTest(0.0, ratiosArray);
+
 						// TDistribution tdist = new
 						// TDistribution(intensitiesAvg.length-2);
 						// For each peptide compute t-test pvalue and store
@@ -604,10 +608,12 @@ public class FilterMockExperiment {
 
 						final double pvalue = t / 2.0;
 
+//						final double pvalueWithNoLogs = calculatePValueWithNoLogs(ratiosArray);
+
 						if (pvalue < pvalueThreshold) {
 							counterStatTestPassed++;
 							processed = true;
-							if (avgRatio > avgRatioThreshold) {
+							if (avgRatio > Maths.log(avgRatioThreshold, 2)) {
 								// passed filters becasue pvalue and ratios pass
 								// thresholds
 								outPassed.write(UniProt_Acc + "\t" + pvalue + "\t" + avgRatio + "\tFALSE" + "\t"
@@ -638,12 +644,27 @@ public class FilterMockExperiment {
 				split = s.split("\t");
 			}
 		}
+		outPassed.close();
+		outFilteredOut.close();
 		in1.close();
 		in2.close();
 		FDR = (counterStatTest * pvalueThreshold) / counterStatTestPassed;
 
 		log.info("Completed");
 		log.info("p-value = " + pvalueThreshold + " FDR = " + FDR);
+	}
+
+	private double calculatePValueWithNoLogs(double[] ratiosArray) {
+		final double[] ratiosNoLog = new double[ratiosArray.length];
+		int i = 0;
+		for (final double logratio : ratiosArray) {
+			ratiosNoLog[i++] = Math.pow(2, logratio);
+		}
+
+		final TTest tstat = new TTest();
+
+		final double t = tstat.tTest(1.0, ratiosNoLog);
+		return t / 2;
 	}
 
 	/**

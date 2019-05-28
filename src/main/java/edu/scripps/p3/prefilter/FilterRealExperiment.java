@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +28,15 @@ import edu.scripps.yates.utilities.maths.Maths;
  */
 public class FilterRealExperiment {
 	private static final Logger log = Logger.getLogger(FilterRealExperiment.class);
-	public static final double singletonFilter = 4.0;
-	public static final double singletonFilter2nd = 1.0 / singletonFilter;
+	public static final double singletonFilter = 2.0;
+	public static final double singletonFilter2nd = -2.0;
 	private final File controlExperimentFile;
 	private final double pvalueThreshold;
 	private File significativeInteractorsFile;
 	private File noSignificativeInteractorsFile;
 	private File notEnoughReplicatesFile;
 	private double FDR;
+	private final static DecimalFormat df = new DecimalFormat("#.###");
 
 	public static void main(String[] args) {
 		final FilterRealExperiment filterRealExperiment = new FilterRealExperiment(new File(args[0]),
@@ -74,6 +76,7 @@ public class FilterRealExperiment {
 
 			// String inputFileName = "src/data/quant_stat_compare2732.txt";
 			final BufferedReader in = new BufferedReader(new FileReader(controlExperimentFile));
+			final Double globalRatioMean = RatioGlobalNormalizer.getGlobalLog2RatioMean(controlExperimentFile, true);
 
 			significativeInteractorsFile = FileUtils.appendToFileName(controlExperimentFile, null, "_Sig");
 			final BufferedWriter outPassed = new BufferedWriter(new FileWriter(significativeInteractorsFile));
@@ -126,7 +129,7 @@ public class FilterRealExperiment {
 					final String[] splitRatios2 = splitRatios1[i].split(",");
 					for (int j = 0; j < splitRatios2.length; j++) {
 						if (!splitRatios2[j].equals("X") && !(splitRatios2[j].length() < 1)) {
-							ratios.add(Double.parseDouble(splitRatios2[j]));
+							ratios.add(Maths.log(Double.parseDouble(splitRatios2[j]), 2) - globalRatioMean);
 							counter++;
 
 							if (i == 0) {
@@ -232,14 +235,14 @@ public class FilterRealExperiment {
 							// get t-statistic
 							final TTest tstat = new TTest();
 							double t = -1.0;
-							if (avgRatio >= 1) {
-								t = tstat.tTest(1.0, ratiosArray);
-							} else {
-								for (int i = 0; i < ratiosArray.length; i++) {
-									ratiosArray[i] = 1.0 / ratiosArray[i];
-								}
-								t = tstat.tTest(1.0, ratiosArray);
-							}
+//							if (avgRatio >= 0) {
+							t = tstat.tTest(0.0, ratiosArray);
+//							} else {
+//								for (int i = 0; i < ratiosArray.length; i++) {
+//									ratiosArray[i] = -ratiosArray[i];
+//								}
+//								t = tstat.tTest(0.0, ratiosArray);
+//							}
 
 							// TDistribution tdist = new
 							// TDistribution(intensitiesAvg.length-2);
@@ -295,6 +298,7 @@ public class FilterRealExperiment {
 
 		// String inputFileName = "src/data/quant_stat_compare2732.txt";
 		final BufferedReader in = new BufferedReader(new FileReader(controlExperimentFile));
+		final Double globalRatioMean = RatioGlobalNormalizer.getGlobalLog2RatioMean(controlExperimentFile, true);
 
 		significativeInteractorsFile = FileUtils.appendToFileName(controlExperimentFile, null, "_Sig");
 		final BufferedWriter outPassed = new BufferedWriter(new FileWriter(significativeInteractorsFile));
@@ -303,9 +307,11 @@ public class FilterRealExperiment {
 		notEnoughReplicatesFile = FileUtils.appendToFileName(controlExperimentFile, null, "_Not_Enough_Replicates");
 		final BufferedWriter outNotEnoughRep = new BufferedWriter(new FileWriter(notEnoughReplicatesFile));
 
-		outPassed.write("UniProt_Accession\t" + "t-test_p-value\t" + "Passed_With_Singleton_Criteria\t"
-				+ "Heavy_Light\t" + "Average_Ratio\t" + "Protein_Info\t" + "Ratios\n");
-		outFilteredOut.write("UniProt_Accession\tt-test_p-value\tAverage_Ratio\tProtein_Info\tRatios\n");
+		outPassed.write(
+				"UniProt_Accession\t" + "t-test_p-value\t" + "'-log10 pvalue\t" + "Passed_With_Singleton_Criteria\t"
+						+ "Heavy_Light\t" + "Average_Ratio\t" + "Protein_Info\t" + "Ratios\n");
+		outFilteredOut
+				.write("UniProt_Accession\tt-test_p-value\t'-log10 pvalue\tAverage_Ratio\tProtein_Info\tRatios\n");
 		outNotEnoughRep.write("UniProt_Accession\tQuantified_In_More_Than_One_Replicate\tProtein_Info\tRatios\n");
 
 		outPassed.flush();
@@ -337,8 +343,8 @@ public class FilterRealExperiment {
 			final String ProteinInfo = split[indexesByHeaders.get(PreFilterUtils.DESCRIPTION_LOWER_CASE)];
 			final List<Double> ratios = new ArrayList<Double>();
 			double counter = 0;
-			final String ratiosString = PreFilterUtils.getOldRatioString(indexesByReplicates, s);
-			if (ProteinInfo.contains("PRKAA2")) {
+			String ratiosString = PreFilterUtils.getOldRatioString(indexesByReplicates, s);
+			if (UniProt_Acc.contains("Q9BYN0")) {
 				log.info(ProteinInfo + "\t" + ratiosString);
 			}
 
@@ -346,12 +352,16 @@ public class FilterRealExperiment {
 			boolean inReplicate2 = false;
 			boolean inReplicate3 = false;
 
+			final StringBuilder normRatioStringBuilder = new StringBuilder();
 			final String[] splitRatios1 = ratiosString.split(";");
 			for (int i = 0; i < splitRatios1.length; i++) {
 				final String[] splitRatios2 = splitRatios1[i].split(",");
 				for (int j = 0; j < splitRatios2.length; j++) {
 					if (!splitRatios2[j].equals("X") && !(splitRatios2[j].length() < 1)) {
-						ratios.add(Double.parseDouble(splitRatios2[j]));
+						final double log2ratio = Maths.log(Double.parseDouble(splitRatios2[j]), 2);
+						final double shiftedLog2ratio = log2ratio - globalRatioMean;
+						ratios.add(shiftedLog2ratio);
+						normRatioStringBuilder.append(df.format(shiftedLog2ratio));
 						counter++;
 
 						if (i == 0) {
@@ -366,9 +376,14 @@ public class FilterRealExperiment {
 							inReplicate3 = true;
 
 						}
+					} else {
+						normRatioStringBuilder.append(splitRatios2[j]);
 					}
+					normRatioStringBuilder.append(",");
 				}
+				normRatioStringBuilder.append(";");
 			}
+			ratiosString = normRatioStringBuilder.toString();
 
 			boolean quantifiedInMoreThanOneRep = false;
 			if ((inReplicate1 && inReplicate2) || (inReplicate1 && inReplicate3) || (inReplicate2 && inReplicate3)) {
@@ -399,8 +414,8 @@ public class FilterRealExperiment {
 				}
 				if (highRatioCounter >= counter / 2) {
 					// protein has more than half peptides singleton
-					outPassed.write(UniProt_Acc + "\tN\\A\tTRUE\t>4.0_Light\tN\\A\t" + ProteinInfo + "\t" + ratiosString
-							+ "\n");
+					outPassed.write(
+							UniProt_Acc + "\tN\\A\t80\tTRUE\tN\\A\t2\t" + ProteinInfo + "\t" + ratiosString + "\n");
 					outPassed.flush();
 					processed = true;
 				} else {
@@ -415,8 +430,8 @@ public class FilterRealExperiment {
 					}
 					if (lowRatioCounter >= counter / 2) {
 						// protein has more than half peptides singleton
-						outPassed.write(UniProt_Acc + "\tN\\A\tTRUE\t<0.25_Heavy\tN\\A\t" + ProteinInfo + "\t"
-								+ ratiosString + "\n");
+						outPassed.write(UniProt_Acc + "\tN\\A\t80\tTRUE\tN\\A\t-2\t" + ProteinInfo + "\t" + ratiosString
+								+ "\n");
 						outPassed.flush();
 						processed = true;
 					}
@@ -432,16 +447,13 @@ public class FilterRealExperiment {
 							indexInArray++;
 						}
 					}
-					if (UniProt_Acc.equals("P54646")) {
-						log.info("asdf");
-					}
 					final double avgRatio = Maths.mean(ratiosArray);
 
 					if (ratiosArray.length == 1) {
 						// if only has one ratio, is discarded for not having
 						// sufficient data
-						outFilteredOut.write(UniProt_Acc + "\tINSUFFICIENT_DATA\t" + avgRatio + "\t" + ProteinInfo
-								+ "\t" + ratiosString + "\n");
+						outFilteredOut.write(UniProt_Acc + "\tINSUFFICIENT_DATA\tINSUFFICIENT_DATA\t" + avgRatio + "\t"
+								+ ProteinInfo + "\t" + ratiosString + "\n");
 						outFilteredOut.flush();
 					} else {
 						counterStatTest++;
@@ -450,14 +462,14 @@ public class FilterRealExperiment {
 						// get t-statistic
 						final TTest tstat = new TTest();
 						double t = -1.0;
-						if (avgRatio >= 1) {
-							t = tstat.tTest(1.0, ratiosArray);
-						} else {
-							for (int i = 0; i < ratiosArray.length; i++) {
-								ratiosArray[i] = 1.0 / ratiosArray[i];
-							}
-							t = tstat.tTest(1.0, ratiosArray);
-						}
+//						if (avgRatio >= 0) {
+						t = tstat.tTest(0.0, ratiosArray);
+//						} else {
+//							for (int i = 0; i < ratiosArray.length; i++) {
+//								ratiosArray[i] = -ratiosArray[i];
+//							}
+//							t = tstat.tTest(0.0, ratiosArray);
+//						}
 
 						// TDistribution tdist = new
 						// TDistribution(intensitiesAvg.length-2);
@@ -470,16 +482,16 @@ public class FilterRealExperiment {
 						final double pvalue = t / 2;
 
 						if (pvalue < pvalueThreshold) {
-							outPassed.write(UniProt_Acc + "\t" + pvalue + "\t" + "FALSE" + "\t" + "N/A" + "\t"
-									+ avgRatio + "\t" + ProteinInfo + "\t" + ratiosString + "\n");
+							outPassed.write(UniProt_Acc + "\t" + pvalue + "\t" + -Maths.log(pvalue, 10) + "\t" + "FALSE"
+									+ "\t" + "N/A" + "\t" + avgRatio + "\t" + ProteinInfo + "\t" + ratiosString + "\n");
 							outPassed.flush();
 							processed = true;
 							counterStatTestPassed++;
 						}
 
 						if (!processed) {
-							outFilteredOut.write(UniProt_Acc + "\t" + pvalue + "\t" + avgRatio + "\t" + ProteinInfo
-									+ "\t" + ratiosString + "\n");
+							outFilteredOut.write(UniProt_Acc + "\t" + pvalue + "\t" + -Maths.log(pvalue, 10) + "\t"
+									+ avgRatio + "\t" + ProteinInfo + "\t" + ratiosString + "\n");
 							outFilteredOut.flush();
 						}
 					}

@@ -2,6 +2,16 @@ package edu.scripps.p3.prefilter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import edu.scripps.yates.utilities.fasta.FastaParser;
+import gnu.trove.map.hash.TDoubleObjectHashMap;
 
 public class PreFilterExecutor {
 	private final File controlAFile;
@@ -12,7 +22,11 @@ public class PreFilterExecutor {
 												// IP in control B?
 	private final File realAoverB;
 	private final double pValueThreshold;
-	private final double avgRatioThreshold;
+	private double avgRatioThreshold;
+	private RemoveNonSpecificInteractors removeNonSpecificInteractors;
+	private String name;
+	private final TDoubleObjectHashMap<List<String>> confidenceInteractorsByFoldChangeThreshold = new TDoubleObjectHashMap<List<String>>();
+	private final TDoubleObjectHashMap<List<String>> knownInteractorsByFoldChangeThreshold = new TDoubleObjectHashMap<List<String>>();
 
 	public PreFilterExecutor(File controlAFile, File controlBFile, File realAoverB, double pValueThreshold,
 			double avgRatioThreshold) {
@@ -27,6 +41,10 @@ public class PreFilterExecutor {
 		this.ipConditionLightB = ipConditionLightB;
 		this.realAoverB = realAoverB;
 		this.pValueThreshold = pValueThreshold;
+		this.avgRatioThreshold = avgRatioThreshold;
+	}
+
+	public void setavgRatioThreshold(double avgRatioThreshold) {
 		this.avgRatioThreshold = avgRatioThreshold;
 	}
 
@@ -94,8 +112,64 @@ public class PreFilterExecutor {
 				controlAFile, ipConditionLightA, pValueThreshold, avgRatioThreshold);
 		final FilterRealExperiment filterRealExperiment = new FilterRealExperiment(realAoverB, pValueThreshold);
 
-		final RemoveNonSpecificInteractors removeNonSpecificInteractors = new RemoveNonSpecificInteractors(
-				filterMockExperiment1, filterMockExperiment2, filterRealExperiment);
+		removeNonSpecificInteractors = new RemoveNonSpecificInteractors(filterMockExperiment1, filterMockExperiment2,
+				filterRealExperiment);
 		return removeNonSpecificInteractors;
+	}
+
+	public List<String> getConfidentInteractors() throws IOException {
+		final File specificNonSignificativeInteractors = removeNonSpecificInteractors
+				.getSpecificNonSignificativeInteractors();
+		final List<String> nonSignificantInteractors = Files
+				.readAllLines(Paths.get(specificNonSignificativeInteractors.toURI())).stream().skip(1)
+				.map(line -> line.split("\t")[4]).map(fastaHeader -> FastaParser.getGeneFromFastaHeader(fastaHeader))
+				.filter(gene -> Objects.nonNull(gene)).distinct().collect(Collectors.toList());
+		final File specificSignificativeInteractors = removeNonSpecificInteractors
+				.getSpecificSignificativeInteractors();
+		final List<String> significantInteractors = Files
+				.readAllLines(Paths.get(specificSignificativeInteractors.toURI())).stream().skip(1)
+				.map(line -> line.split("\t")[6]).map(fastaHeader -> FastaParser.getGeneFromFastaHeader(fastaHeader))
+				.filter(gene -> Objects.nonNull(gene)).distinct().collect(Collectors.toList());
+		final List<String> ret = new ArrayList<String>();
+		for (final String interactor : nonSignificantInteractors) {
+			if (!ret.contains(interactor)) {
+				ret.add(interactor);
+			}
+		}
+		for (final String interactor : significantInteractors) {
+			if (!ret.contains(interactor)) {
+				ret.add(interactor);
+			}
+		}
+		setConfidenceIteractors(ret);
+		return ret;
+	}
+
+	private void setConfidenceIteractors(List<String> confidenceIteractors) {
+
+		Collections.sort(confidenceIteractors);
+		confidenceInteractorsByFoldChangeThreshold.put(this.avgRatioThreshold, confidenceIteractors);
+	}
+
+	void setKnownIteractors(List<String> knownIteractors) {
+
+		Collections.sort(knownIteractors);
+		knownInteractorsByFoldChangeThreshold.put(this.avgRatioThreshold, knownIteractors);
+	}
+
+	public TDoubleObjectHashMap<List<String>> getConfidenceInteractorsByFoldchangeThreshold() {
+		return confidenceInteractorsByFoldChangeThreshold;
+	}
+
+	public TDoubleObjectHashMap<List<String>> getKnownInteractorsByFoldchangeThreshold() {
+		return knownInteractorsByFoldChangeThreshold;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

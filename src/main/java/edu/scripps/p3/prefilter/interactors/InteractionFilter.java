@@ -102,4 +102,13 @@ public abstract class InteractionFilter {
 		}
 		return ret;
 	}
+
+	public Set<String> getUniqueConfidentInteractors(Float threshold, String bait) {
+		final List<AbstractInteraction> confidentInteractors = getConfidentInteractors(threshold, bait);
+		final Set<String> ret = new THashSet<String>();
+		for (final AbstractInteraction interaction : confidentInteractors) {
+			ret.add(interaction.getCounterPart(bait));
+		}
+		return ret;
+	}
 }

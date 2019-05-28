@@ -126,7 +126,7 @@ public class RemoveNonSpecificInteractors {
 		while (line3 != null) {
 			int numTimesInInclusionList = 0;
 			final String[] split = line3.split("\t");
-			if (split[0].equals("P54646")) {
+			if (split[0].equals("P35610")) {
 				log.info("asdf");
 			}
 			boolean include;
